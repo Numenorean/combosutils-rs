@@ -55,7 +55,7 @@ impl Core {
                 DomainRemover::new(self.targets, self.results_path.clone(), self.save_period)
                     .process()
             }
-            _ => todo!(),
+            _ => unreachable!(),
         }?;
 
         Core::open_in_explorer(self.results_path);
