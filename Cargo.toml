@@ -11,3 +11,7 @@ chrono = "0.4.19"
 mimalloc = "0.1.27"
 encoding_rs_io = "0.1.7"
 encoding_rs = "0.8.30"
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
