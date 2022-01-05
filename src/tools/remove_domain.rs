@@ -1,6 +1,6 @@
 use std::{
     fs,
-    io::{BufRead, BufReader},
+    io::BufRead,
     path::PathBuf,
     time,
 };
@@ -57,9 +57,10 @@ impl LinesProcessor for DomainRemover {
                     continue;
                 }
             };
-            let buffer = BufReader::new(file);
 
-            for (i, combo) in buffer.lines().enumerate() {
+            let reader = DomainRemover::reader_from_file(file);
+
+            for (i, combo) in reader.lines().enumerate() {
                 let combo = match combo {
                     Ok(combo) => combo,
                     Err(err) => {
@@ -79,7 +80,7 @@ impl LinesProcessor for DomainRemover {
                     results.push(combo);
                 }
             }
-    
+
             println!("Потрачено: {:?}", inner_now.elapsed());
         }
 

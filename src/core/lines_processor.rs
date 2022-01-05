@@ -6,6 +6,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use encoding_rs::WINDOWS_1252;
+use encoding_rs_io::{DecodeReaderBytes, DecodeReaderBytesBuilder};
+
 pub trait LinesProcessor {
     fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize) -> Self;
 
@@ -50,5 +53,13 @@ pub trait LinesProcessor {
         new_file_name.push(".");
         new_file_name.push(path.extension().unwrap_or_default());
         new_file_name
+    }
+
+    fn reader_from_file(file: File) -> BufReader<DecodeReaderBytes<File, Vec<u8>>> {
+        BufReader::new(
+            DecodeReaderBytesBuilder::new()
+                .encoding(Some(WINDOWS_1252))
+                .build(file),
+        )
     }
 }
