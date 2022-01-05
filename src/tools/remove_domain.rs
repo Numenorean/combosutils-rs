@@ -34,6 +34,7 @@ impl LinesProcessor for DomainRemover {
         let mut results: Vec<String> = Vec::with_capacity(self.save_period);
 
         for (file_num, path) in self.targets.iter().enumerate() {
+            let inner_now = time::Instant::now();
             println!("[{}/{}]Файл: {:?}", file_num + 1, self.targets.len(), path);
             let file = match fs::OpenOptions::new().read(true).open(&path) {
                 Ok(file) => file,
@@ -61,8 +62,8 @@ impl LinesProcessor for DomainRemover {
             for (i, combo) in buffer.lines().enumerate() {
                 let combo = match combo {
                     Ok(combo) => combo,
-                    Err(_) => {
-                        eprintln!("Can't read combo on line {} in file {:?}", i, path);
+                    Err(err) => {
+                        eprintln!("Can't read combo on line {} in file {:?}. {}", i, path, err);
                         continue;
                     }
                 };
@@ -78,9 +79,11 @@ impl LinesProcessor for DomainRemover {
                     results.push(combo);
                 }
             }
+    
+            println!("Потрачено: {:?}", inner_now.elapsed());
         }
 
-        println!("Потрачено: {:?}", now.elapsed());
+        println!("Потрачено в общем: {:?}", now.elapsed());
 
         Ok(())
     }
