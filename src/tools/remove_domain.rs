@@ -82,7 +82,9 @@ impl LinesProcessor for DomainRemover {
             println!("Потрачено: {:?}", inner_now.elapsed());
         }
 
-        println!("Потрачено в общем: {:?}", now.elapsed());
+        if self.targets.len() > 1 {
+            println!("Потрачено в общем: {:?}", now.elapsed());
+        }
 
         Ok(())
     }
