@@ -17,7 +17,7 @@ impl fmt::Debug for Task {
 impl From<&str> for Task {
     fn from(s: &str) -> Task {
         match s {
-            "/RemoveDomains" => Task::RemoveDomains,
+            "--remove-domains" => Task::RemoveDomains,
             _ => Task::BadTask,
         }
     }
