@@ -1,4 +1,3 @@
-use std::ffi::OsString;
 use std::io::Write;
 use std::{
     fs::{File, OpenOptions},
@@ -46,13 +45,13 @@ pub trait LinesProcessor {
         combos_count
     }
 
-    fn build_result_filename<P: AsRef<Path>>(path: P, postfix: &str) -> OsString {
-        let path = path.as_ref();
-        let mut new_file_name = path.file_stem().unwrap().to_owned();
+    fn build_results_path<P: AsRef<Path>>(file_path: P, results_path: P, postfix: &str) -> PathBuf {
+        let file_path = file_path.as_ref();
+        let mut new_file_name = file_path.file_stem().unwrap().to_owned();
         new_file_name.push(postfix);
         new_file_name.push(".");
-        new_file_name.push(path.extension().unwrap_or_default());
-        new_file_name
+        new_file_name.push(file_path.extension().unwrap_or_default());
+        results_path.as_ref().join(new_file_name)
     }
 
     fn reader_from_file(file: File) -> BufReader<DecodeReaderBytes<File, Vec<u8>>> {

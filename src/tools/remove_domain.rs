@@ -1,9 +1,4 @@
-use std::{
-    fs,
-    io::BufRead,
-    path::PathBuf,
-    time,
-};
+use std::{fs, io::BufRead, path::PathBuf, time};
 
 use crate::core::lines_processor::LinesProcessor;
 
@@ -34,8 +29,9 @@ impl LinesProcessor for DomainRemover {
         let mut results: Vec<String> = Vec::with_capacity(self.save_period);
 
         for (file_num, path) in self.targets.iter().enumerate() {
-            let inner_now = time::Instant::now();
             println!("[{}/{}]Файл: {:?}", file_num + 1, self.targets.len(), path);
+            let inner_now = time::Instant::now();
+
             let file = match fs::OpenOptions::new().read(true).open(&path) {
                 Ok(file) => file,
                 Err(err) => {
@@ -46,11 +42,12 @@ impl LinesProcessor for DomainRemover {
 
             let lines_count = DomainRemover::count_lines(file);
 
-            let new_file_name = DomainRemover::build_result_filename(&path, "_no_domains");
-            let results_path = self.results_path.join(new_file_name);
+            // TODO: handle files with the same names but in a different dirs
+            let results_path =
+                DomainRemover::build_results_path(path, &self.results_path, "_no_domains");
             let mut results_file = DomainRemover::open_results_file(results_path)?;
 
-            let file = match fs::OpenOptions::new().read(true).open(&path) {
+            let file = match fs::OpenOptions::new().read(true).open(path) {
                 Ok(file) => file,
                 Err(err) => {
                     eprintln!("Can't read input file {:?}. {}", path, err);
@@ -69,15 +66,16 @@ impl LinesProcessor for DomainRemover {
                     }
                 };
 
-                if results.len() == self.save_period || lines_count - i < self.save_period {
+                let combo = DomainRemover::process_line(&combo);
+                if let Some(combo) = combo {
+                    results.push(combo);
+                }
+
+                if results.len() == self.save_period || lines_count - i <= self.save_period {
                     if let Err(e) = DomainRemover::save_results(&mut results, &mut results_file) {
                         eprintln!("Couldn't write to file: {}", e);
                     }
                     results.clear();
-                }
-                let combo = DomainRemover::process_line(&combo);
-                if let Some(combo) = combo {
-                    results.push(combo);
                 }
             }
 
@@ -99,7 +97,7 @@ fn remove_domain(combo: &str) -> Option<String> {
     email.split('@').next().map(|username| {
         let mut result = String::from(username);
         result.push(':');
-        result.push_str(username);
+        result.push_str(password);
         result
     })
 }
