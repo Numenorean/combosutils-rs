@@ -1,10 +1,9 @@
 mod core;
 mod tools;
 use std::{env, io::Read};
+use crate::core::core::Core;
 
 use mimalloc::MiMalloc;
-
-use crate::core::core::Core;
 
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
