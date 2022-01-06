@@ -1,7 +1,7 @@
 mod core;
 mod tools;
-use std::{env, io::Read};
 use crate::core::core::Core;
+use std::{env, io::Read};
 
 use mimalloc::MiMalloc;
 

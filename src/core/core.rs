@@ -8,7 +8,7 @@ use anyhow::anyhow;
 use chrono::{DateTime, Local};
 
 use super::{lines_processor::LinesProcessor, task::Task};
-use crate::tools::remove_domain::DomainRemover;
+use crate::tools::{remove_domain::DomainRemover, remove_duplicates_m::DuplicatesRemoverM};
 
 const SAVE_PERIOD: usize = 1000;
 const RESULTS_PATH: &str = "Результаты\\{type}\\{date}\\{time}";
@@ -26,7 +26,7 @@ impl Core {
         let binary_path = PathBuf::from(args.next().ok_or(anyhow!("bad args"))?);
 
         let task = match args.next().ok_or(anyhow!("bad args"))?.as_str().into() {
-            Task::BadTask => return Err(anyhow!("{:?}", Task::BadTask)),
+            Task::NotImplemented => return Err(anyhow!("{:?}", Task::NotImplemented)),
             task => task,
         };
 
@@ -53,6 +53,11 @@ impl Core {
         match self.task {
             Task::RemoveDomains => {
                 DomainRemover::new(self.targets, self.results_path.clone(), self.save_period)
+                    .process()
+            }
+
+            Task::RemoveDuplicatesM => {
+                DuplicatesRemoverM::new(self.targets, self.results_path.clone(), self.save_period)
                     .process()
             }
             _ => unreachable!(),

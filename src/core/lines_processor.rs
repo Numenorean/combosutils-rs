@@ -15,8 +15,12 @@ pub trait LinesProcessor {
 
     fn process(self) -> Result<(), anyhow::Error>;
 
-    fn save_results(results: &mut Vec<String>, file: &mut File) -> Result<(), anyhow::Error> {
-        writeln!(file, "{}", results.join("\r\n"))?;
+    fn save_results<T>(results: &mut Vec<T>, file: &mut File) -> Result<(), anyhow::Error>
+    where
+        T: AsRef<str>,
+    {
+        let results_str: Vec<&str> = results.iter().map(|v| v.as_ref()).collect();
+        writeln!(file, "{}", results_str.join("\r\n"))?;
         results.clear();
         //file.flush()?;
         Ok(())
@@ -45,10 +49,10 @@ pub trait LinesProcessor {
         combos_count
     }
 
-    fn build_results_path<P: AsRef<Path>>(file_path: P, results_path: P, postfix: &str) -> PathBuf {
+    fn build_results_path<P: AsRef<Path>>(file_path: P, results_path: P, suffix: &str) -> PathBuf {
         let file_path = file_path.as_ref();
         let mut new_file_name = file_path.file_stem().unwrap().to_owned();
-        new_file_name.push(postfix);
+        new_file_name.push(suffix);
         new_file_name.push(".");
         new_file_name.push(file_path.extension().unwrap_or_default());
         results_path.as_ref().join(new_file_name)

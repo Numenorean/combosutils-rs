@@ -1,19 +1,22 @@
 use std::{fs, io::BufRead, path::PathBuf, time};
 
-use crate::core::lines_processor::LinesProcessor;
+use crate::core::{lines_processor::LinesProcessor, task::Task};
 
 pub struct DomainRemover {
     targets: Vec<PathBuf>,
     results_path: PathBuf,
     save_period: usize,
+    task: Task,
 }
 
 impl LinesProcessor for DomainRemover {
     fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize) -> Self {
+        let task = Task::RemoveDomains;
         DomainRemover {
             targets,
             results_path,
             save_period,
+            task,
         }
     }
 
@@ -29,7 +32,6 @@ impl LinesProcessor for DomainRemover {
         let mut results: Vec<String> = Vec::with_capacity(self.save_period);
 
         for (file_num, path) in self.targets.iter().enumerate() {
-            println!("[{}/{}]Файл: {:?}", file_num + 1, self.targets.len(), path);
             let inner_now = time::Instant::now();
 
             let file = match fs::OpenOptions::new().read(true).open(&path) {
@@ -42,9 +44,17 @@ impl LinesProcessor for DomainRemover {
 
             let lines_count = DomainRemover::count_lines(file);
 
+            println!(
+                "[{}/{}]Файл: {:?}. Строк: {}",
+                file_num + 1,
+                self.targets.len(),
+                path,
+                lines_count
+            );
+
             // TODO: handle files with the same names but in a different dirs
             let results_path =
-                DomainRemover::build_results_path(path, &self.results_path, "_no_domains");
+                DomainRemover::build_results_path(path, &self.results_path, self.task.to_suffix());
             let mut results_file = DomainRemover::open_results_file(results_path)?;
 
             let file = match fs::OpenOptions::new().read(true).open(path) {
@@ -71,10 +81,11 @@ impl LinesProcessor for DomainRemover {
                     results.push(combo);
                 }
 
-                if results.len() == self.save_period || lines_count - i <= self.save_period {
+                if results.len() == self.save_period || lines_count - i == 1 {
                     if let Err(e) = DomainRemover::save_results(&mut results, &mut results_file) {
                         eprintln!("Couldn't write to file: {}", e);
                     }
+
                     results.clear();
                 }
             }
