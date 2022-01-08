@@ -52,11 +52,6 @@ impl LinesProcessor for DomainRemover {
                 lines_count
             );
 
-            // TODO: handle files with the same names but in a different dirs
-            let results_path =
-                utils::build_results_path(path, &self.results_path, self.task.to_suffix());
-            let mut results_file = utils::open_results_file(results_path)?;
-
             let file = match fs::OpenOptions::new().read(true).open(path) {
                 Ok(file) => file,
                 Err(err) => {
@@ -66,6 +61,11 @@ impl LinesProcessor for DomainRemover {
             };
 
             let reader = utils::reader_from_file(file);
+
+            // TODO: handle files with the same names but in a different dirs
+            let results_path =
+                utils::build_results_path(path, &self.results_path, self.task.to_suffix());
+            let mut results_file = utils::open_results_file(results_path)?;
 
             for (i, combo) in reader.lines().enumerate() {
                 let combo = match combo {

@@ -22,7 +22,7 @@ impl fmt::Debug for Task {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Task::RemoveDomains => write!(f, "Удаление доменов"),
-            Task::RemoveDuplicatesM  | Task::RemoveDuplicatesC => write!(f, "Удаление дубликатов"),
+            Task::RemoveDuplicatesM | Task::RemoveDuplicatesC => write!(f, "Удаление дубликатов"),
             _ => write!(f, "Такого пока нет"),
         }
     }

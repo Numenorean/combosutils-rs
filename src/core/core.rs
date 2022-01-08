@@ -66,7 +66,9 @@ impl Core {
             _ => unreachable!(),
         }?;
 
-        Core::open_in_explorer(self.results_path);
+        if self.results_path.exists() {
+            Core::open_in_explorer(self.results_path);
+        }
 
         Ok(())
     }

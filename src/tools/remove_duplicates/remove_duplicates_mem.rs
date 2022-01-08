@@ -30,11 +30,6 @@ impl LinesProcessor for DuplicatesRemoverM {
         for (file_num, path) in self.targets.iter().enumerate() {
             let inner_now = time::Instant::now();
 
-            // TODO: handle files with the same names but in a different dirs
-            let results_path =
-                utils::build_results_path(path, &self.results_path, self.task.to_suffix());
-            let mut results_file = utils::open_results_file(results_path)?;
-
             let mut lines = String::new();
 
             let lines = match utils::read_lines(path, &mut lines) {
@@ -62,6 +57,11 @@ impl LinesProcessor for DuplicatesRemoverM {
 
             println!("Строк после удаления: {}", lines_count_after);
             println!("Сохранение...");
+
+            // TODO: handle files with the same names but in a different dirs
+            let results_path =
+                utils::build_results_path(path, &self.results_path, self.task.to_suffix());
+            let mut results_file = utils::open_results_file(results_path)?;
 
             if let Err(e) =
                 utils::save_results_hashset(&mut lines.iter().copied(), &mut results_file)
