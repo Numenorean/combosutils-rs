@@ -13,7 +13,6 @@ use crate::tools::{remove_domain::DomainRemover, remove_duplicates::*};
 const SAVE_PERIOD: usize = 1000;
 const RESULTS_PATH: &str = "Результаты\\{type}\\{date}\\{time}";
 
-#[derive(Debug)]
 pub struct Core {
     results_path: PathBuf,
     targets: Vec<PathBuf>,
@@ -23,7 +22,8 @@ pub struct Core {
 
 impl Core {
     pub fn new(mut args: Args) -> Result<Self, anyhow::Error> {
-        let binary_path = PathBuf::from(args.next().ok_or(anyhow!("bad args"))?);
+        let binary_path = args.next().ok_or(anyhow!("bad args"))?;
+        let binary_path = PathBuf::from(binary_path);
 
         let task = match args.next().ok_or(anyhow!("bad args"))?.as_str().into() {
             Task::NotImplemented => return Err(anyhow!("{:?}", Task::NotImplemented)),
