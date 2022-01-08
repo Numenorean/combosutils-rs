@@ -1,6 +1,6 @@
 use std::{fs, io::BufRead, path::PathBuf, time};
 
-use crate::core::{lines_processor::LinesProcessor, task::Task};
+use crate::core::{lines_processor::LinesProcessor, task::Task, utils};
 
 pub struct DomainRemover {
     targets: Vec<PathBuf>,
@@ -42,7 +42,7 @@ impl LinesProcessor for DomainRemover {
                 }
             };
 
-            let lines_count = DomainRemover::count_lines(file);
+            let lines_count = utils::count_lines(file);
 
             println!(
                 "[{}/{}]Файл: {:?}. Строк: {}",
@@ -54,8 +54,8 @@ impl LinesProcessor for DomainRemover {
 
             // TODO: handle files with the same names but in a different dirs
             let results_path =
-                DomainRemover::build_results_path(path, &self.results_path, self.task.to_suffix());
-            let mut results_file = DomainRemover::open_results_file(results_path)?;
+                utils::build_results_path(path, &self.results_path, self.task.to_suffix());
+            let mut results_file = utils::open_results_file(results_path)?;
 
             let file = match fs::OpenOptions::new().read(true).open(path) {
                 Ok(file) => file,
@@ -65,7 +65,7 @@ impl LinesProcessor for DomainRemover {
                 }
             };
 
-            let reader = DomainRemover::reader_from_file(file);
+            let reader = utils::reader_from_file(file);
 
             for (i, combo) in reader.lines().enumerate() {
                 let combo = match combo {
@@ -82,11 +82,9 @@ impl LinesProcessor for DomainRemover {
                 }
 
                 if results.len() == self.save_period || lines_count - i == 1 {
-                    if let Err(e) = DomainRemover::save_results(&mut results, &mut results_file) {
+                    if let Err(e) = utils::save_results(&mut results, &mut results_file) {
                         eprintln!("Couldn't write to file: {}", e);
                     }
-
-                    results.clear();
                 }
             }
 

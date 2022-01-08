@@ -1,6 +1,6 @@
-use std::{fs, path::PathBuf, time};
+use std::{collections::HashSet, path::PathBuf, time};
 
-use crate::core::{lines_processor::LinesProcessor, task::Task};
+use crate::core::{lines_processor::LinesProcessor, task::Task, utils};
 
 pub struct DuplicatesRemoverM {
     targets: Vec<PathBuf>,
@@ -28,67 +28,46 @@ impl LinesProcessor for DuplicatesRemoverM {
         let now = time::Instant::now();
 
         for (file_num, path) in self.targets.iter().enumerate() {
-            println!("[{}/{}]Файл: {:?}", file_num + 1, self.targets.len(), path);
             let inner_now = time::Instant::now();
 
             // TODO: handle files with the same names but in a different dirs
-            let results_path = DuplicatesRemoverM::build_results_path(
-                path,
-                &self.results_path,
-                self.task.to_suffix(),
-            );
-            let mut results_file = DuplicatesRemoverM::open_results_file(results_path)?;
+            let results_path =
+                utils::build_results_path(path, &self.results_path, self.task.to_suffix());
+            let mut results_file = utils::open_results_file(results_path)?;
 
-            /*let file = match fs::OpenOptions::new().read(true).open(path) {
-                Ok(file) => file,
+            let mut lines = String::new();
+
+            let lines = match utils::read_lines(path, &mut lines) {
                 Err(err) => {
                     eprintln!("Can't read input file {:?}. {}", path, err);
                     continue;
                 }
-            };*/
-
-            let lines = match fs::read_to_string(path) {
-                Ok(data) => data,
-                Err(err) => {
-                    eprintln!("Can't read input file {:?}. {}", path, err);
-                    continue;
-                }
+                Ok(lines) => lines,
             };
-            let mut lines: Vec<&str> = lines.split('\n').map(|v| v.trim_end()).collect();
-
-            /*let reader = DuplicatesRemoverM::reader_from_file(file);
-            let mut lines: Vec<String> = Vec::new();
-
-            for (i, combo) in reader.lines().enumerate() {
-                let combo = match combo {
-                    Ok(combo) => combo,
-                    Err(err) => {
-                        eprintln!("Can't read combo on line {} in file {:?}. {}", i, path, err);
-                        continue;
-                    }
-                };
-
-                lines.push(combo)
-            }*/
 
             let lines_count = lines.len();
-
-            println!("Строк: {}", lines_count);
-
-            println!("Сортировка...");
-
-            lines.sort_unstable();
+            println!(
+                "[{}/{}]Файл: {:?}. Строк: {}",
+                file_num + 1,
+                self.targets.len(),
+                path,
+                lines_count
+            );
 
             println!("Удаление дубликатов...");
 
-            lines.dedup();
+            let lines: HashSet<&str> = HashSet::from_iter(lines);
 
             let lines_count_after = lines.len();
 
-            println!("Строк после удаления: {}", lines_count);
+            println!("Строк после удаления: {}", lines_count_after);
+            println!("Сохранение...");
 
-            if let Err(e) = DuplicatesRemoverM::save_results(&mut lines, &mut results_file) {
-                eprintln!("Couldn't write to file: {}", e);
+            if let Err(e) =
+                utils::save_results_hashset(&mut lines.iter().copied(), &mut results_file)
+            {
+                eprintln!("Couldn't save results to file: {}", e);
+                continue
             }
 
             println!(
