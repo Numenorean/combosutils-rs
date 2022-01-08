@@ -8,7 +8,7 @@ use anyhow::anyhow;
 use chrono::{DateTime, Local};
 
 use super::{lines_processor::LinesProcessor, task::Task};
-use crate::tools::{remove_domain::DomainRemover, remove_duplicates_m::DuplicatesRemoverM};
+use crate::tools::{remove_domain::DomainRemover, remove_duplicates::*};
 
 const SAVE_PERIOD: usize = 1000;
 const RESULTS_PATH: &str = "Результаты\\{type}\\{date}\\{time}";
@@ -50,15 +50,18 @@ impl Core {
     }
 
     pub fn process(self) -> Result<(), anyhow::Error> {
+        let results_path = self.results_path.clone();
         match self.task {
             Task::RemoveDomains => {
-                DomainRemover::new(self.targets, self.results_path.clone(), self.save_period)
-                    .process()
+                DomainRemover::new(self.targets, results_path, self.save_period).process()
             }
 
             Task::RemoveDuplicatesM => {
-                DuplicatesRemoverM::new(self.targets, self.results_path.clone(), self.save_period)
-                    .process()
+                DuplicatesRemoverM::new(self.targets, results_path, self.save_period).process()
+            }
+
+            Task::RemoveDuplicatesC => {
+                DuplicatesRemoverC::new(self.targets, results_path, self.save_period).process()
             }
             _ => unreachable!(),
         }?;

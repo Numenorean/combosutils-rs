@@ -1,2 +1,2 @@
 pub mod remove_domain;
-pub mod remove_duplicates_m;
+pub mod remove_duplicates;

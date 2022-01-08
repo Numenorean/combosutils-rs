@@ -67,7 +67,7 @@ impl LinesProcessor for DuplicatesRemoverM {
                 utils::save_results_hashset(&mut lines.iter().copied(), &mut results_file)
             {
                 eprintln!("Couldn't save results to file: {}", e);
-                continue
+                continue;
             }
 
             println!(
