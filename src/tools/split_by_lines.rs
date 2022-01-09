@@ -115,7 +115,7 @@ impl LinesProcessor for ByLinesSplitter {
 
                 let last_combo = lines_count - i == 1;
 
-                // we have the second branch for saving results which are can't be save right away
+                // we have the second branch for saving results which we are not going to save right away
                 // so we need to save it only if don't need to switch to the next file
                 // in another way we will be just saving results from the second branch hence results files won't contains needed ammount of lines
                 let need_save = results.len() == self.save_period && !next_group;
