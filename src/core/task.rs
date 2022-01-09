@@ -4,6 +4,7 @@ pub enum Task {
     RemoveDomains,
     RemoveDuplicatesM,
     RemoveDuplicatesC,
+    SplitByLines,
     NotImplemented,
 }
 
@@ -13,6 +14,7 @@ impl Task {
         match *self {
             Task::RemoveDomains => "_no_domains",
             Task::RemoveDuplicatesM | Task::RemoveDuplicatesC => "_no_duplicates",
+            Task::SplitByLines => "_splitted_{num}",
             _ => unreachable!(),
         }
     }
@@ -23,6 +25,7 @@ impl fmt::Debug for Task {
         match *self {
             Task::RemoveDomains => write!(f, "Удаление доменов"),
             Task::RemoveDuplicatesM | Task::RemoveDuplicatesC => write!(f, "Удаление дубликатов"),
+            Task::SplitByLines => write!(f, "Разделение по количеству строк"),
             _ => write!(f, "Такого пока нет"),
         }
     }
@@ -34,18 +37,8 @@ impl From<&str> for Task {
             "--remove-domains" => Task::RemoveDomains,
             "--remove-duplicates-m" => Task::RemoveDuplicatesM,
             "--remove-duplicates-c" => Task::RemoveDuplicatesC,
+            "--split-by-lines" => Task::SplitByLines,
             _ => Task::NotImplemented,
         }
     }
-}
-
-#[macro_export]
-macro_rules! task_to_suffix {
-    ( $e:expr ) => {
-        match $e {
-            Task::RemoveDomains => "_no_domains",
-            Task::RemoveDuplicatesM => "_no_duplicates",
-            _ => unreachable!(),
-        }
-    };
 }

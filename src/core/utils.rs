@@ -1,3 +1,4 @@
+use std::io;
 use std::io::Read;
 use std::io::Write;
 use std::{
@@ -102,4 +103,12 @@ fn join<'a>(mut iter: impl Iterator<Item = &'a str>, joiner: &str) -> String {
     }
 
     joined
+}
+
+pub fn user_input(input: &str) -> Result<String, anyhow::Error> {
+    print!("{}", input);
+    io::stdout().flush()?;
+    let mut input = String::new();
+    io::stdin().read_line(&mut input)?;
+    Ok(input.trim().to_string())
 }

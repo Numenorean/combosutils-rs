@@ -8,7 +8,9 @@ use anyhow::anyhow;
 use chrono::{DateTime, Local};
 
 use super::{lines_processor::LinesProcessor, task::Task};
-use crate::tools::{remove_domain::DomainRemover, remove_duplicates::*};
+use crate::tools::{
+    remove_domain::DomainRemover, remove_duplicates::*, split_by_lines::ByLinesSplitter,
+};
 
 const SAVE_PERIOD: usize = 1000;
 const RESULTS_PATH: &str = "Результаты\\{type}\\{date}\\{time}";
@@ -62,6 +64,10 @@ impl Core {
 
             Task::RemoveDuplicatesC => {
                 DuplicatesRemoverC::new(self.targets, results_path, self.save_period).process()
+            }
+
+            Task::SplitByLines => {
+                ByLinesSplitter::new(self.targets, results_path, self.save_period).process()
             }
             _ => unreachable!(),
         }?;

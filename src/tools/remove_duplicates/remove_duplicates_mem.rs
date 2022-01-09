@@ -1,4 +1,6 @@
-use std::{collections::HashSet, path::PathBuf, time};
+use std::{path::PathBuf, time};
+
+use rustc_hash::FxHashSet;
 
 use crate::core::{lines_processor::LinesProcessor, task::Task, utils};
 
@@ -51,7 +53,7 @@ impl LinesProcessor for DuplicatesRemoverM {
 
             println!("Удаление дубликатов...");
 
-            let lines: HashSet<&str> = HashSet::from_iter(lines);
+            let lines: FxHashSet<&str> = FxHashSet::from_iter(lines);
 
             let lines_count_after = lines.len();
 

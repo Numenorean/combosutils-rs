@@ -6,26 +6,50 @@ use crate::core::{
     utils::{self, open_file_r},
 };
 
-pub struct DomainRemover {
+pub struct ByLinesSplitter {
     targets: Vec<PathBuf>,
     results_path: PathBuf,
     save_period: usize,
     task: Task,
+    lines_n: usize,
 }
 
-impl LinesProcessor for DomainRemover {
+impl LinesProcessor for ByLinesSplitter {
     fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize) -> Self {
-        let task = Task::RemoveDomains;
-        DomainRemover {
+        let task = Task::SplitByLines;
+
+        fn get_lines_n() -> usize {
+            let static_err = anyhow::anyhow!("Что-то не так с числом");
+            let input = utils::user_input("Количество строк в каждом файле: ");
+
+            match input {
+                Ok(input) => match input.parse::<usize>() {
+                    Ok(n) => n,
+                    Err(err) => {
+                        println!("{}: {}", static_err, err);
+                        get_lines_n()
+                    }
+                },
+                Err(err) => {
+                    println!("{}: {}", static_err, err);
+                    get_lines_n()
+                }
+            }
+        }
+
+        let lines_n = get_lines_n();
+
+        ByLinesSplitter {
             targets,
             results_path,
             save_period,
             task,
+            lines_n,
         }
     }
 
-    fn process_line(line: &str) -> Option<String> {
-        remove_domain(line)
+    fn process_line(_: &str) -> Option<String> {
+        unreachable!()
     }
 
     fn process(self) -> Result<(), anyhow::Error> {
@@ -38,7 +62,7 @@ impl LinesProcessor for DomainRemover {
         for (file_num, path) in self.targets.iter().enumerate() {
             let inner_now = time::Instant::now();
 
-            let file = match fs::OpenOptions::new().read(true).open(&path) {
+            let file = match open_file_r(path) {
                 Ok(file) => file,
                 Err(err) => {
                     eprintln!("Can't read input file {:?}. {}", path, err);
@@ -56,7 +80,7 @@ impl LinesProcessor for DomainRemover {
                 lines_count
             );
 
-            let file = match open_file_r(path) {
+            let file = match fs::OpenOptions::new().read(true).open(path) {
                 Ok(file) => file,
                 Err(err) => {
                     eprintln!("Can't read input file {:?}. {}", path, err);
@@ -67,8 +91,11 @@ impl LinesProcessor for DomainRemover {
             let reader = utils::reader_from_file(file);
 
             // TODO: handle files with the same names but in a different dirs
-            let results_path =
-                utils::build_results_path(path, &self.results_path, self.task.to_suffix());
+            let suffix = self
+                .task
+                .to_suffix()
+                .replace("{num}", &self.lines_n.to_string());
+            let mut results_path = utils::build_results_path(path, &self.results_path, &suffix);
             let mut results_file = utils::open_results_file(results_path)?;
 
             for (i, combo) in reader.lines().enumerate() {
@@ -80,12 +107,23 @@ impl LinesProcessor for DomainRemover {
                     }
                 };
 
-                let combo = DomainRemover::process_line(&combo);
-                if let Some(combo) = combo {
-                    results.push(combo);
+                results.push(combo);
+
+                let next_group = i % self.lines_n == 1;
+
+                let last_combo = lines_count - i == 1;
+                let need_save = results.len() == self.save_period;
+
+                if i > self.lines_n && (next_group || last_combo) {
+                    let suffix = self
+                        .task
+                        .to_suffix()
+                        .replace("{num}", &(i - 1 + self.lines_n).to_string());
+                    results_path = utils::build_results_path(path, &self.results_path, &suffix);
+                    results_file = utils::open_results_file(results_path)?;
                 }
 
-                if results.len() == self.save_period || lines_count - i == 1 {
+                if need_save || last_combo {
                     if let Err(e) = utils::save_results(&mut results, &mut results_file) {
                         eprintln!("Couldn't write to file: {}", e);
                     }
@@ -101,18 +139,4 @@ impl LinesProcessor for DomainRemover {
 
         Ok(())
     }
-}
-
-fn remove_domain(combo: &str) -> Option<String> {
-    let (email, password) = combo.split_once(&[':', ';'][..])?;
-    if email.is_empty() || password.is_empty() {
-        return None;
-    }
-
-    email.split('@').next().map(|username| {
-        let mut result = String::from(username);
-        result.push(':');
-        result.push_str(password);
-        result
-    })
 }
