@@ -1,4 +1,4 @@
-use std::{fs, io::{BufRead, Read}, path::PathBuf, time};
+use std::{fs, io::BufRead, path::PathBuf, time};
 
 use crate::core::{
     lines_processor::LinesProcessor,
@@ -119,7 +119,9 @@ impl LinesProcessor for ByLinesSplitter {
                 // so we need to save it only if don't need to switch to the next file
                 // in another way we will be just saving results from the second branch hence results files won't contains needed ammount of lines
                 // UPD: we also need to do self.lines_n - already_written >= self.save_period, because otherwise it write unnecessary data before next_group will be true
-                let need_save = results.len() == self.save_period && !next_group && self.lines_n - already_written >= self.save_period;
+                let need_save = results.len() == self.save_period
+                    && !next_group
+                    && self.lines_n - already_written >= self.save_period;
 
                 if need_save || last_combo {
                     if let Err(e) = utils::save_results(&mut results, &mut results_file) {
