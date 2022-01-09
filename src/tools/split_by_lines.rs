@@ -118,7 +118,8 @@ impl LinesProcessor for ByLinesSplitter {
                 // we have the second branch for saving results which we are not going to save right away
                 // so we need to save it only if don't need to switch to the next file
                 // in another way we will be just saving results from the second branch hence results files won't contains needed ammount of lines
-                let need_save = results.len() == self.save_period && !next_group;
+                // UPD: we also need to do self.lines_n - already_written >= self.save_period, because otherwise it write unnecessary data before next_group will be true
+                let need_save = results.len() == self.save_period && !next_group && self.lines_n - already_written >= self.save_period;
 
                 if need_save || last_combo {
                     if let Err(e) = utils::save_results(&mut results, &mut results_file) {
