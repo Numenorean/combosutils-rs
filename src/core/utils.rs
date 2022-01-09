@@ -15,7 +15,8 @@ where
     T: AsRef<str>,
 {
     let results_str: Vec<&str> = results.iter().map(|v| v.as_ref()).collect();
-    let results_str = results_str.join("\n");
+    let mut results_str = results_str.join("\n");
+    results_str.push('\n');
     let encoded = WINDOWS_1252.encode(results_str.as_str());
     file.write_all(&encoded.0)?;
     results.clear();

@@ -1,4 +1,4 @@
-use std::{fs, io::BufRead, path::PathBuf, time};
+use std::{fs, io::{BufRead, Read}, path::PathBuf, time};
 
 use crate::core::{
     lines_processor::LinesProcessor,
@@ -98,6 +98,8 @@ impl LinesProcessor for ByLinesSplitter {
             let mut results_path = utils::build_results_path(path, &self.results_path, &suffix);
             let mut results_file = utils::open_results_file(results_path)?;
 
+            let mut already_written = 0usize;
+
             for (i, combo) in reader.lines().enumerate() {
                 let combo = match combo {
                     Ok(combo) => combo,
@@ -109,24 +111,38 @@ impl LinesProcessor for ByLinesSplitter {
 
                 results.push(combo);
 
-                let next_group = i % self.lines_n == 1;
+                let next_group = i % self.lines_n == 1 && i > self.lines_n;
 
                 let last_combo = lines_count - i == 1;
-                let need_save = results.len() == self.save_period;
+                let need_save = results.len() == self.save_period && !next_group;
 
-                if i > self.lines_n && (next_group || last_combo) {
+                if need_save || last_combo {
+                    if let Err(e) = utils::save_results(&mut results, &mut results_file) {
+                        eprintln!("Couldn't write to file: {}", e);
+                    }
+                    already_written += self.save_period;
+                } else if next_group && already_written != self.lines_n {
+                    let need_write = self.lines_n - already_written;
+
+                    println!("{} {}", need_write, i);
+
+                    let mut to_be_written: Vec<&String> = results.iter().take(need_write).collect();
+
+                    if let Err(e) = utils::save_results(&mut to_be_written, &mut results_file) {
+                        eprintln!("Couldn't write to file: {}", e);
+                    }
+
+                    results.truncate(need_write);
+                }
+
+                if next_group {
                     let suffix = self
                         .task
                         .to_suffix()
                         .replace("{num}", &(i - 1 + self.lines_n).to_string());
                     results_path = utils::build_results_path(path, &self.results_path, &suffix);
                     results_file = utils::open_results_file(results_path)?;
-                }
-
-                if need_save || last_combo {
-                    if let Err(e) = utils::save_results(&mut results, &mut results_file) {
-                        eprintln!("Couldn't write to file: {}", e);
-                    }
+                    already_written = 0;
                 }
             }
 
