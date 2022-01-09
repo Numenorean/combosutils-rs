@@ -114,6 +114,10 @@ impl LinesProcessor for ByLinesSplitter {
                 let next_group = i % self.lines_n == 1 && i > self.lines_n;
 
                 let last_combo = lines_count - i == 1;
+
+                // we have the second branch for saving results which are can't be save right away
+                // so we need to save it only if don't need to switch to the next file
+                // in another way we will be just saving results from the second branch hence results files won't contains needed ammount of lines
                 let need_save = results.len() == self.save_period && !next_group;
 
                 if need_save || last_combo {
@@ -123,8 +127,6 @@ impl LinesProcessor for ByLinesSplitter {
                     already_written += self.save_period;
                 } else if next_group && already_written != self.lines_n {
                     let need_write = self.lines_n - already_written;
-
-                    println!("{} {}", need_write, i);
 
                     let mut to_be_written: Vec<&String> = results.iter().take(need_write).collect();
 
