@@ -24,7 +24,13 @@ impl LinesProcessor for ByLinesSplitter {
 
             match input {
                 Ok(input) => match input.parse::<usize>() {
-                    Ok(n) => n,
+                    Ok(n) => {
+                        if n == 0 {
+                            println!("{}: {}", static_err, "Не может быть 0");
+                            return get_lines_n();
+                        }
+                        n
+                    },
                     Err(err) => {
                         println!("{}: {}", static_err, err);
                         get_lines_n()
