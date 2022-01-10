@@ -14,7 +14,6 @@ encoding_rs = "0.8.30"
 rayon = "1.5.1"
 encoding = "0.2.33"
 rustc-hash = "1.1.0"
-digest = "0.10.1"
 
 [profile.release-lto]
 inherits = "release"
