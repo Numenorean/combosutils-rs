@@ -17,7 +17,7 @@ pub struct ByLinesSplitter {
 impl LinesProcessor for ByLinesSplitter {
     fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize) -> Self {
         let task = Task::SplitByLines;
-        
+
         fn get_lines_n() -> usize {
             let static_err = anyhow::anyhow!("Что-то не так с числом");
             let input = utils::user_input("Количество строк в каждом файле: ");
@@ -26,11 +26,11 @@ impl LinesProcessor for ByLinesSplitter {
                 Ok(input) => match input.parse::<usize>() {
                     Ok(n) => {
                         if n == 0 {
-                            println!("{}: {}", static_err, "Не может быть 0");
+                            println!("{}: Не может быть 0", static_err);
                             return get_lines_n();
                         }
                         n
-                    },
+                    }
                     Err(err) => {
                         println!("{}: {}", static_err, err);
                         get_lines_n()
@@ -104,10 +104,7 @@ impl LinesProcessor for ByLinesSplitter {
             let reader = utils::reader_from_file(file);
 
             // TODO: handle files with the same names but in a different dirs
-            let suffix = self
-                .task
-                .to_suffix()
-                .replace("{num}", &lines_n.to_string());
+            let suffix = self.task.to_suffix().replace("{num}", &lines_n.to_string());
             let mut self_results_path = self.results_path.clone();
             self_results_path.push(path.file_name().unwrap_or_default());
 
