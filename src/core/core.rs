@@ -9,7 +9,7 @@ use chrono::{DateTime, Local};
 
 use super::{lines_processor::LinesProcessor, task::Task};
 use crate::tools::{
-    merge::Merger, remove_domain::DomainRemover, remove_duplicates::*,
+    merge::Merger, remove_domain::DomainRemover, remove_duplicates::*, shuffle::Shuffler,
     split_by_lines::ByLinesSplitter,
 };
 
@@ -72,6 +72,8 @@ impl Core {
             }
 
             Task::Merge => Merger::new(self.targets, results_path, self.save_period).process(),
+
+            Task::Shuffle => Shuffler::new(self.targets, results_path, self.save_period).process(),
             _ => unreachable!(),
         }?;
 

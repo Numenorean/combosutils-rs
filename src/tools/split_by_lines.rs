@@ -59,7 +59,6 @@ impl LinesProcessor for ByLinesSplitter {
     }
 
     fn process(self) -> Result<(), anyhow::Error> {
-        let mut lines_n = self.lines_n;
         println!("Обработка {} файлов", self.targets.len());
 
         let now = time::Instant::now();
@@ -87,7 +86,7 @@ impl LinesProcessor for ByLinesSplitter {
                 lines_count
             );
 
-            lines_n = self.lines_n;
+            let mut lines_n = self.lines_n;
 
             if self.lines_n > lines_count {
                 lines_n = lines_count;
