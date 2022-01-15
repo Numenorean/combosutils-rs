@@ -1,4 +1,4 @@
-use std::{fs, io::BufRead, path::PathBuf, time};
+use std::{io::BufRead, path::PathBuf, time};
 
 use crate::core::{
     lines_processor::LinesProcessor,
@@ -19,7 +19,7 @@ impl LinesProcessor for ByLinesSplitter {
         let task = Task::SplitByLines;
 
         fn get_lines_n() -> usize {
-            let static_err = anyhow::anyhow!("Что-то не так с числом");
+            let static_err = "Что-то не так с числом";
             let input = utils::user_input("Количество строк в каждом файле: ");
 
             match input {
@@ -93,7 +93,7 @@ impl LinesProcessor for ByLinesSplitter {
                 lines_n = lines_count;
             }
 
-            let file = match fs::OpenOptions::new().read(true).open(path) {
+            let file = match open_file_r(path) {
                 Ok(file) => file,
                 Err(err) => {
                     eprintln!("Can't read input file {:?}. {}", path, err);

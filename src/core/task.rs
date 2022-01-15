@@ -5,6 +5,7 @@ pub enum Task {
     RemoveDuplicatesM,
     RemoveDuplicatesC,
     SplitByLines,
+    Merge,
     NotImplemented,
 }
 
@@ -15,6 +16,7 @@ impl Task {
             Task::RemoveDomains => "_no_domains",
             Task::RemoveDuplicatesM | Task::RemoveDuplicatesC => "_no_duplicates",
             Task::SplitByLines => "_splitted_{num}",
+            Task::Merge => "_merged",
             _ => unreachable!(),
         }
     }
@@ -26,6 +28,7 @@ impl fmt::Debug for Task {
             Task::RemoveDomains => write!(f, "Удаление доменов"),
             Task::RemoveDuplicatesM | Task::RemoveDuplicatesC => write!(f, "Удаление дубликатов"),
             Task::SplitByLines => write!(f, "Разделение по количеству строк"),
+            Task::Merge => write!(f, "Склеивание"),
             _ => write!(f, "Такого пока нет"),
         }
     }
@@ -38,6 +41,7 @@ impl From<&str> for Task {
             "--remove-duplicates-m" => Task::RemoveDuplicatesM,
             "--remove-duplicates-c" => Task::RemoveDuplicatesC,
             "--split-by-lines" => Task::SplitByLines,
+            "--merge" => Task::Merge,
             _ => Task::NotImplemented,
         }
     }

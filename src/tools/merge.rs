@@ -6,17 +6,18 @@ use crate::core::{
     utils::{self, open_file_r},
 };
 
-pub struct DomainRemover {
+pub struct Merger {
     targets: Vec<PathBuf>,
     results_path: PathBuf,
     save_period: usize,
     task: Task,
 }
 
-impl LinesProcessor for DomainRemover {
+impl LinesProcessor for Merger {
     fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize) -> Self {
-        let task = Task::RemoveDomains;
-        DomainRemover {
+        let task = Task::Merge;
+
+        Merger {
             targets,
             results_path,
             save_period,
@@ -24,8 +25,8 @@ impl LinesProcessor for DomainRemover {
         }
     }
 
-    fn process_line(line: &str) -> Option<String> {
-        remove_domain(line)
+    fn process_line(_: &str) -> Option<String> {
+        unreachable!()
     }
 
     fn process(self) -> Result<(), anyhow::Error> {
@@ -35,9 +36,11 @@ impl LinesProcessor for DomainRemover {
 
         let mut results: Vec<String> = Vec::with_capacity(self.save_period);
 
-        for (file_num, path) in self.targets.iter().enumerate() {
-            let inner_now = time::Instant::now();
+        let results_path =
+            utils::build_results_path(&self.targets[0], &self.results_path, self.task.to_suffix());
+        let mut results_file = utils::open_results_file(results_path)?;
 
+        for (file_num, path) in self.targets.iter().enumerate() {
             let file = match open_file_r(path) {
                 Ok(file) => file,
                 Err(err) => {
@@ -49,10 +52,10 @@ impl LinesProcessor for DomainRemover {
             let lines_count = utils::count_lines(file);
 
             println!(
-                "[{}/{}]Файл: {:?}. Строк: {}",
+                "[{}/{}]Файл: {}. Строк: {}",
                 file_num + 1,
                 self.targets.len(),
-                path,
+                path.display(),
                 lines_count
             );
 
@@ -66,11 +69,6 @@ impl LinesProcessor for DomainRemover {
 
             let reader = utils::reader_from_file(file);
 
-            // TODO: handle files with the same names but in a different dirs
-            let results_path =
-                utils::build_results_path(path, &self.results_path, self.task.to_suffix());
-            let mut results_file = utils::open_results_file(results_path)?;
-
             for (i, combo) in reader.lines().enumerate() {
                 let combo = match combo {
                     Ok(combo) => combo,
@@ -80,10 +78,7 @@ impl LinesProcessor for DomainRemover {
                     }
                 };
 
-                let combo = DomainRemover::process_line(&combo);
-                if let Some(combo) = combo {
-                    results.push(combo);
-                }
+                results.push(combo);
 
                 if results.len() == self.save_period || lines_count - i == 1 {
                     if let Err(e) = utils::save_results(&mut results, &mut results_file) {
@@ -91,8 +86,6 @@ impl LinesProcessor for DomainRemover {
                     }
                 }
             }
-
-            println!("Потрачено: {:?}", inner_now.elapsed());
         }
 
         if self.targets.len() > 1 {
@@ -101,18 +94,4 @@ impl LinesProcessor for DomainRemover {
 
         Ok(())
     }
-}
-
-fn remove_domain(combo: &str) -> Option<String> {
-    let (email, password) = combo.split_once(&[':', ';'][..])?;
-    if email.is_empty() || password.is_empty() {
-        return None;
-    }
-
-    email.split('@').next().map(|username| {
-        let mut result = String::from(username);
-        result.push(':');
-        result.push_str(password);
-        result
-    })
 }

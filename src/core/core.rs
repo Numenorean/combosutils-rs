@@ -9,7 +9,8 @@ use chrono::{DateTime, Local};
 
 use super::{lines_processor::LinesProcessor, task::Task};
 use crate::tools::{
-    remove_domain::DomainRemover, remove_duplicates::*, split_by_lines::ByLinesSplitter,
+    merge::Merger, remove_domain::DomainRemover, remove_duplicates::*,
+    split_by_lines::ByLinesSplitter,
 };
 
 const SAVE_PERIOD: usize = 1000;
@@ -69,6 +70,8 @@ impl Core {
             Task::SplitByLines => {
                 ByLinesSplitter::new(self.targets, results_path, self.save_period).process()
             }
+
+            Task::Merge => Merger::new(self.targets, results_path, self.save_period).process(),
             _ => unreachable!(),
         }?;
 
