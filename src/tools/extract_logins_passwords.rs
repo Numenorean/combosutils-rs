@@ -108,7 +108,7 @@ impl LinesProcessor for PartExtractor {
 }
 
 fn extract(combo: &str, task: Task) -> Option<String> {
-    let (email, password) = combo.split_once(&[':', ';'][..])?;
+    let (email, password) = combo.split_once([':', ';'])?;
     if email.is_empty() || password.is_empty() {
         return None;
     }
