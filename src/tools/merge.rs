@@ -14,9 +14,7 @@ pub struct Merger {
 }
 
 impl LinesProcessor for Merger {
-    fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize) -> Self {
-        let task = Task::Merge;
-
+    fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize, task: Task) -> Self {
         Merger {
             targets,
             results_path,
@@ -44,7 +42,7 @@ impl LinesProcessor for Merger {
             let file = match open_file_r(path) {
                 Ok(file) => file,
                 Err(err) => {
-                    eprintln!("Can't read input file {:?}. {}", path, err);
+                    eprintln!("Can't read input file {}. {}", path.display(), err);
                     continue;
                 }
             };
@@ -62,7 +60,7 @@ impl LinesProcessor for Merger {
             let file = match open_file_r(path) {
                 Ok(file) => file,
                 Err(err) => {
-                    eprintln!("Can't read input file {:?}. {}", path, err);
+                    eprintln!("Can't read input file {}. {}", path.display(), err);
                     continue;
                 }
             };
@@ -73,7 +71,12 @@ impl LinesProcessor for Merger {
                 let combo = match combo {
                     Ok(combo) => combo,
                     Err(err) => {
-                        eprintln!("Can't read combo on line {} in file {:?}. {}", i, path, err);
+                        eprintln!(
+                            "Can't read combo on line {} in file {}. {}",
+                            i,
+                            path.display(),
+                            err
+                        );
                         continue;
                     }
                 };

@@ -11,8 +11,7 @@ pub struct DuplicatesRemoverC {
 }
 
 impl LinesProcessor for DuplicatesRemoverC {
-    fn new(targets: Vec<PathBuf>, results_path: PathBuf, _: usize) -> Self {
-        let task = Task::RemoveDuplicatesM;
+    fn new(targets: Vec<PathBuf>, results_path: PathBuf, _: usize, task: Task) -> Self {
         DuplicatesRemoverC {
             targets,
             results_path,

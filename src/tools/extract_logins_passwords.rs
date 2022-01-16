@@ -6,16 +6,16 @@ use crate::core::{
     utils::{self, open_file_r},
 };
 
-pub struct DomainRemover {
+pub struct PartExtractor {
     targets: Vec<PathBuf>,
     results_path: PathBuf,
     save_period: usize,
     task: Task,
 }
 
-impl LinesProcessor for DomainRemover {
+impl LinesProcessor for PartExtractor {
     fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize, task: Task) -> Self {
-        DomainRemover {
+        PartExtractor {
             targets,
             results_path,
             save_period,
@@ -23,8 +23,8 @@ impl LinesProcessor for DomainRemover {
         }
     }
 
-    fn process_line(line: &str) -> Option<String> {
-        remove_domain(line)
+    fn process_line(_: &str) -> Option<String> {
+        unreachable!()
     }
 
     fn process(self) -> Result<(), anyhow::Error> {
@@ -84,8 +84,8 @@ impl LinesProcessor for DomainRemover {
                     }
                 };
 
-                let combo = DomainRemover::process_line(&combo);
-                if let Some(combo) = combo {
+                let part = extract(&combo, self.task);
+                if let Some(combo) = part {
                     results.push(combo);
                 }
 
@@ -107,16 +107,15 @@ impl LinesProcessor for DomainRemover {
     }
 }
 
-fn remove_domain(combo: &str) -> Option<String> {
+fn extract(combo: &str, task: Task) -> Option<String> {
     let (email, password) = combo.split_once(&[':', ';'][..])?;
     if email.is_empty() || password.is_empty() {
         return None;
     }
 
-    email.split('@').next().map(|username| {
-        let mut result = String::from(username);
-        result.push(':');
-        result.push_str(password);
-        result
-    })
+    match task {
+        Task::ExtractLogins => Some(email.to_owned()),
+        Task::ExtractPasswords => Some(password.to_owned()),
+        _ => unreachable!(),
+    }
 }

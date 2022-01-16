@@ -24,8 +24,7 @@ struct ComboOffset {
 }
 
 impl LinesProcessor for Shuffler {
-    fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize) -> Self {
-        let task = Task::Shuffle;
+    fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize, task: Task) -> Self {
         Shuffler {
             targets,
             results_path,
@@ -49,7 +48,7 @@ impl LinesProcessor for Shuffler {
             let file = match open_file_r(path) {
                 Ok(file) => file,
                 Err(err) => {
-                    eprintln!("Can't read input file {:?}. {}", path, err);
+                    eprintln!("Can't read input file {}. {}", path.display(), err);
                     continue;
                 }
             };
@@ -57,17 +56,17 @@ impl LinesProcessor for Shuffler {
             let lines_count = utils::count_lines(file);
 
             println!(
-                "[{}/{}]Файл: {:?}. Строк: {}",
+                "[{}/{}]Файл: {}. Строк: {}",
                 file_num + 1,
                 self.targets.len(),
-                path,
+                path.display(),
                 lines_count
             );
 
             let file = match open_file_r(path) {
                 Ok(file) => file,
                 Err(err) => {
-                    eprintln!("Can't read input file {:?}. {}", path, err);
+                    eprintln!("Can't read input file {}. {}", path.display(), err);
                     continue;
                 }
             };

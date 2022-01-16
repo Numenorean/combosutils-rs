@@ -9,8 +9,8 @@ use chrono::{DateTime, Local};
 
 use super::{lines_processor::LinesProcessor, task::Task};
 use crate::tools::{
-    merge::Merger, remove_domain::DomainRemover, remove_duplicates::*, shuffle::Shuffler,
-    split_by_lines::ByLinesSplitter,
+    extract_logins_passwords::PartExtractor, merge::Merger, remove_domain::DomainRemover,
+    remove_duplicates::*, shuffle::Shuffler, split_by_lines::ByLinesSplitter,
 };
 
 const SAVE_PERIOD: usize = 1000;
@@ -56,24 +56,37 @@ impl Core {
         let results_path = self.results_path.clone();
         match self.task {
             Task::RemoveDomains => {
-                DomainRemover::new(self.targets, results_path, self.save_period).process()
+                DomainRemover::new(self.targets, results_path, self.save_period, self.task)
+                    .process()
             }
 
             Task::RemoveDuplicatesM => {
-                DuplicatesRemoverM::new(self.targets, results_path, self.save_period).process()
+                DuplicatesRemoverM::new(self.targets, results_path, self.save_period, self.task)
+                    .process()
             }
 
             Task::RemoveDuplicatesC => {
-                DuplicatesRemoverC::new(self.targets, results_path, self.save_period).process()
+                DuplicatesRemoverC::new(self.targets, results_path, self.save_period, self.task)
+                    .process()
             }
 
             Task::SplitByLines => {
-                ByLinesSplitter::new(self.targets, results_path, self.save_period).process()
+                ByLinesSplitter::new(self.targets, results_path, self.save_period, self.task)
+                    .process()
             }
 
-            Task::Merge => Merger::new(self.targets, results_path, self.save_period).process(),
+            Task::Merge => {
+                Merger::new(self.targets, results_path, self.save_period, self.task).process()
+            }
 
-            Task::Shuffle => Shuffler::new(self.targets, results_path, self.save_period).process(),
+            Task::Shuffle => {
+                Shuffler::new(self.targets, results_path, self.save_period, self.task).process()
+            }
+
+            Task::ExtractLogins | Task::ExtractPasswords => {
+                PartExtractor::new(self.targets, results_path, self.save_period, self.task)
+                    .process()
+            }
             _ => unreachable!(),
         }?;
 

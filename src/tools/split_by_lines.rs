@@ -15,9 +15,7 @@ pub struct ByLinesSplitter {
 }
 
 impl LinesProcessor for ByLinesSplitter {
-    fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize) -> Self {
-        let task = Task::SplitByLines;
-
+    fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize, task: Task) -> Self {
         fn get_lines_n() -> usize {
             let static_err = "Что-то не так с числом";
             let input = utils::user_input("Количество строк в каждом файле: ");
@@ -71,7 +69,7 @@ impl LinesProcessor for ByLinesSplitter {
             let file = match open_file_r(path) {
                 Ok(file) => file,
                 Err(err) => {
-                    eprintln!("Can't read input file {:?}. {}", path, err);
+                    eprintln!("Can't read input file {}. {}", path.display(), err);
                     continue;
                 }
             };
@@ -95,7 +93,7 @@ impl LinesProcessor for ByLinesSplitter {
             let file = match open_file_r(path) {
                 Ok(file) => file,
                 Err(err) => {
-                    eprintln!("Can't read input file {:?}. {}", path, err);
+                    eprintln!("Can't read input file {}. {}", path.display(), err);
                     continue;
                 }
             };
@@ -116,7 +114,12 @@ impl LinesProcessor for ByLinesSplitter {
                 let combo = match combo {
                     Ok(combo) => combo,
                     Err(err) => {
-                        eprintln!("Can't read combo on line {} in file {:?}. {}", i, path, err);
+                        eprintln!(
+                            "Can't read combo on line {} in file {}. {}",
+                            i,
+                            path.display(),
+                            err
+                        );
                         continue;
                     }
                 };
