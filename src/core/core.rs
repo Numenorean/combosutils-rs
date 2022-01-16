@@ -9,8 +9,9 @@ use chrono::{DateTime, Local};
 
 use super::{lines_processor::LinesProcessor, task::Task};
 use crate::tools::{
-    extract_logins_passwords::PartExtractor, merge::Merger, remove_domain::DomainRemover,
-    remove_duplicates::*, shuffle::Shuffler, split_by_lines::ByLinesSplitter,
+    extract_logins_passwords::PartExtractor, extract_phones::PhonesExtractor, merge::Merger,
+    remove_domain::DomainRemover, remove_duplicates::*, shuffle::Shuffler,
+    split_by_lines::ByLinesSplitter,
 };
 
 const SAVE_PERIOD: usize = 1000;
@@ -85,6 +86,11 @@ impl Core {
 
             Task::ExtractLogins | Task::ExtractPasswords => {
                 PartExtractor::new(self.targets, results_path, self.save_period, self.task)
+                    .process()
+            }
+
+            Task::ExtractPhones => {
+                PhonesExtractor::new(self.targets, results_path, self.save_period, self.task)
                     .process()
             }
             _ => unreachable!(),

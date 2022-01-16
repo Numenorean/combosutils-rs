@@ -10,6 +10,7 @@ pub enum Task {
     Shuffle,
     ExtractLogins,
     ExtractPasswords,
+    ExtractPhones,
     NotImplemented,
 }
 
@@ -24,6 +25,7 @@ impl Task {
             Task::Shuffle => "_randomized",
             Task::ExtractLogins => "_logins",
             Task::ExtractPasswords => "_passwords",
+            Task::ExtractPhones => "_phones",
             _ => unreachable!(),
         }
     }
@@ -39,6 +41,7 @@ impl fmt::Debug for Task {
             Task::Shuffle => write!(f, "Перемешивание"),
             Task::ExtractLogins => write!(f, "Получение логинов"),
             Task::ExtractPasswords => write!(f, "Получение паролей"),
+            Task::ExtractPhones => write!(f, "Нормализация телефонов"),
             _ => write!(f, "Такого пока нет"),
         }
     }
@@ -55,6 +58,7 @@ impl From<&str> for Task {
             "--shuffle" => Task::Shuffle,
             "--extract-logins" => Task::ExtractLogins,
             "--extract-passwords" => Task::ExtractPasswords,
+            "--extract-phones" => Task::ExtractPhones,
             _ => Task::NotImplemented,
         }
     }
