@@ -96,9 +96,11 @@ impl Core {
             _ => unreachable!(),
         }?;
 
-        if self.results_path.exists() {
-            Core::open_in_explorer(self.results_path);
+        if !self.results_path.exists() {
+            return Err(anyhow!("Результатов нет"));
         }
+
+        Core::open_in_explorer(self.results_path);
 
         Ok(())
     }

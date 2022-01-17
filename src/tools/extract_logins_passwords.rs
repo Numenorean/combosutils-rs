@@ -68,7 +68,7 @@ impl LinesProcessor for PartExtractor {
             // TODO: handle files with the same names but in a different dirs
             let results_path =
                 utils::build_results_path(path, &self.results_path, self.task.to_suffix());
-            let mut results_file = utils::open_results_file(results_path)?;
+            let results_file = Some(utils::open_results_file(results_path)?);
 
             for (i, combo) in reader.lines().enumerate() {
                 let combo = match combo {
@@ -90,7 +90,7 @@ impl LinesProcessor for PartExtractor {
                 }
 
                 if results.len() == self.save_period || lines_count - i == 1 {
-                    if let Err(e) = utils::save_results(&mut results, &mut results_file) {
+                    if let Err(e) = utils::save_results(&mut results, &results_file) {
                         eprintln!("Couldn't write to file: {}", e);
                     }
                 }

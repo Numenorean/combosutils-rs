@@ -66,9 +66,9 @@ impl LinesProcessor for DuplicatesRemoverC {
             // TODO: handle files with the same names but in a different dirs
             let results_path =
                 utils::build_results_path(path, &self.results_path, self.task.to_suffix());
-            let mut results_file = utils::open_results_file(results_path)?;
+            let results_file = Some(utils::open_results_file(results_path)?);
 
-            if let Err(e) = utils::save_results(&mut lines, &mut results_file) {
+            if let Err(e) = utils::save_results(&mut lines, &results_file) {
                 eprintln!("Couldn't save results to file: {}", e);
                 continue;
             }

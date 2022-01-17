@@ -1,4 +1,4 @@
-use std::{io::BufRead, path::PathBuf, time};
+use std::{fs::File, io::BufRead, path::PathBuf, time};
 
 use crate::core::{
     lines_processor::LinesProcessor,
@@ -78,7 +78,7 @@ impl LinesProcessor for PhonesExtractor {
             // TODO: handle files with the same names but in a different dirs
             let results_path =
                 utils::build_results_path(path, &self.results_path, self.task.to_suffix());
-            let mut results_file = utils::open_results_file(results_path)?;
+            let mut results_file: Option<File> = None;
 
             for (i, combo) in reader.lines().enumerate() {
                 let combo = match combo {
@@ -95,12 +95,16 @@ impl LinesProcessor for PhonesExtractor {
                 };
 
                 let combo = PhonesExtractor::process_line(&combo);
+                if results_file.is_none() && combo.is_some() {
+                    results_file = Some(utils::open_results_file(&results_path)?);
+                }
+
                 if let Some(combo) = combo {
                     results.push(combo);
                 }
 
                 if results.len() == self.save_period || lines_count - i == 1 {
-                    if let Err(e) = utils::save_results(&mut results, &mut results_file) {
+                    if let Err(e) = utils::save_results(&mut results, &results_file) {
                         eprintln!("Couldn't write to file: {}", e);
                     }
                 }

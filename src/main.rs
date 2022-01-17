@@ -13,7 +13,9 @@ fn main() -> Result<(), anyhow::Error> {
 
     let core = Core::new(args)?;
 
-    core.process()?;
+    if let Err(err) = core.process() {
+        eprintln!("Ошибка: {}", err)
+    }
 
     let _ = std::io::stdin().read(&mut [0u8]).unwrap();
 

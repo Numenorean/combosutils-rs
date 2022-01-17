@@ -1,3 +1,4 @@
+use std::borrow::BorrowMut;
 use std::io;
 use std::io::Read;
 use std::io::Write;
@@ -10,15 +11,19 @@ use std::{
 use encoding_rs::WINDOWS_1252;
 use encoding_rs_io::{DecodeReaderBytes, DecodeReaderBytesBuilder};
 
-pub fn save_results<T>(results: &mut Vec<T>, file: &mut File) -> Result<(), anyhow::Error>
+pub fn save_results<T>(results: &mut Vec<T>, file: &Option<File>) -> Result<(), anyhow::Error>
 where
     T: AsRef<str>,
 {
+    if file.is_none() {
+        return Ok(());
+    }
+    let mut file = file.as_ref().unwrap();
     let results_str: Vec<&str> = results.iter().map(|v| v.as_ref()).collect();
     let mut results_str = results_str.join("\n");
     results_str.push('\n');
     let encoded = WINDOWS_1252.encode(results_str.as_str());
-    file.write_all(&encoded.0)?;
+    file.borrow_mut().write_all(&encoded.0)?;
     results.clear();
     Ok(())
 }

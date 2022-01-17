@@ -106,7 +106,7 @@ impl LinesProcessor for ByLinesSplitter {
             self_results_path.push(path.file_name().unwrap_or_default());
 
             let mut results_path = utils::build_results_path(path, &self_results_path, &suffix);
-            let mut results_file = utils::open_results_file(results_path)?;
+            let mut results_file = Some(utils::open_results_file(results_path)?);
 
             let mut already_written = 0usize;
 
@@ -139,7 +139,7 @@ impl LinesProcessor for ByLinesSplitter {
                     && lines_n - already_written >= self.save_period;
 
                 if need_save || last_combo {
-                    if let Err(e) = utils::save_results(&mut results, &mut results_file) {
+                    if let Err(e) = utils::save_results(&mut results, &results_file) {
                         eprintln!("Couldn't write to file: {}", e);
                     }
                     already_written += self.save_period;
@@ -148,7 +148,7 @@ impl LinesProcessor for ByLinesSplitter {
 
                     let mut to_be_written: Vec<&String> = results.iter().take(need_write).collect();
 
-                    if let Err(e) = utils::save_results(&mut to_be_written, &mut results_file) {
+                    if let Err(e) = utils::save_results(&mut to_be_written, &results_file) {
                         eprintln!("Couldn't write to file: {}", e);
                     }
 
@@ -161,7 +161,7 @@ impl LinesProcessor for ByLinesSplitter {
                         .to_suffix()
                         .replace("{num}", &(i - 1 + lines_n).to_string());
                     results_path = utils::build_results_path(path, &self_results_path, &suffix);
-                    results_file = utils::open_results_file(results_path)?;
+                    results_file = Some(utils::open_results_file(results_path)?);
                     already_written = 0;
                 }
             }
