@@ -10,8 +10,8 @@ use chrono::{DateTime, Local};
 use super::{lines_processor::LinesProcessor, task::Task};
 use crate::tools::{
     extract_logins_passwords::PartExtractor, extract_phones::PhonesExtractor, merge::Merger,
-    remove_domain::DomainRemover, remove_duplicates::*, shuffle::Shuffler,
-    split_by_lines::ByLinesSplitter,
+    remove_domain::DomainRemover, duplicates::*, shuffle::Shuffler,
+    split_by_lines::ByLinesSplitter, split_by_parts::ByPartsSplitter,
 };
 
 const SAVE_PERIOD: usize = 1000;
@@ -73,6 +73,11 @@ impl Core {
 
             Task::SplitByLines => {
                 ByLinesSplitter::new(self.targets, results_path, self.save_period, self.task)
+                    .process()
+            }
+
+            Task::SplitByParts => {
+                ByPartsSplitter::new(self.targets, results_path, self.save_period, self.task)
                     .process()
             }
 
