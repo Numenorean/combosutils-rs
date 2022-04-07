@@ -2,7 +2,10 @@ use std::{path::PathBuf, time};
 
 use rustc_hash::FxHashSet;
 
-use crate::core::{lines_processor::LinesProcessor, task::Task, utils};
+use crate::{
+    core::{lines_processor::LinesProcessor, task::Task, utils},
+    errors::core_error::CoreError,
+};
 
 pub struct DuplicatesRemoverM {
     targets: Vec<PathBuf>,
@@ -23,7 +26,7 @@ impl LinesProcessor for DuplicatesRemoverM {
         unreachable!()
     }
 
-    fn process(self) -> Result<(), anyhow::Error> {
+    fn process(self) -> Result<(), CoreError> {
         println!("Обработка {} файлов", self.targets.len());
 
         let now = time::Instant::now();

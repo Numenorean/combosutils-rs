@@ -11,7 +11,7 @@ use std::{
 use encoding_rs::WINDOWS_1252;
 use encoding_rs_io::{DecodeReaderBytes, DecodeReaderBytesBuilder};
 
-pub fn save_results<T>(results: &mut Vec<T>, file: &Option<File>) -> Result<(), anyhow::Error>
+pub fn save_results<T>(results: &mut Vec<T>, file: &Option<File>) -> io::Result<()>
 where
     T: AsRef<str>,
 {
@@ -28,7 +28,7 @@ where
     Ok(())
 }
 
-pub fn open_results_file<P: AsRef<Path>>(path: P) -> Result<File, anyhow::Error> {
+pub fn open_results_file<P: AsRef<Path>>(path: P) -> io::Result<File> {
     let path = path.as_ref();
 
     if !path.exists() {
@@ -37,12 +37,11 @@ pub fn open_results_file<P: AsRef<Path>>(path: P) -> Result<File, anyhow::Error>
         }
     }
 
-    let file = OpenOptions::new()
+    OpenOptions::new()
         .create_new(true)
         .write(true)
         .append(true)
-        .open(path)?;
-    Ok(file)
+        .open(path)
 }
 
 pub fn count_lines(file: File) -> usize {
@@ -70,7 +69,7 @@ pub fn reader_from_file(file: File) -> BufReader<DecodeReaderBytes<File, Vec<u8>
     )
 }
 
-pub fn read_lines<'a>(path: &Path, buffer: &'a mut String) -> Result<Vec<&'a str>, anyhow::Error> {
+pub fn read_lines<'a>(path: &Path, buffer: &'a mut String) -> io::Result<Vec<&'a str>> {
     let file = open_file_r(path)?;
     let mut reader = reader_from_file(file);
 
@@ -80,7 +79,7 @@ pub fn read_lines<'a>(path: &Path, buffer: &'a mut String) -> Result<Vec<&'a str
     Ok(lines)
 }
 
-pub fn open_file_r(path: &Path) -> Result<File, anyhow::Error> {
+pub fn open_file_r(path: &Path) -> io::Result<File> {
     let file = OpenOptions::new().read(true).open(path)?;
     Ok(file)
 }
@@ -89,7 +88,7 @@ pub fn open_file_r(path: &Path) -> Result<File, anyhow::Error> {
 pub fn save_results_hashset<'a>(
     results: impl Iterator<Item = &'a str>,
     file: &mut File,
-) -> Result<(), anyhow::Error> {
+) -> io::Result<()> {
     let results_str = join(results, "\n");
     let encoded = WINDOWS_1252.encode(results_str.as_str());
     file.write_all(&encoded.0)?;
@@ -111,7 +110,7 @@ fn join<'a>(mut iter: impl Iterator<Item = &'a str>, joiner: &str) -> String {
     joined
 }
 
-pub fn user_input(input: &str) -> Result<String, anyhow::Error> {
+pub fn user_input(input: &str) -> io::Result<String> {
     print!("{}", input);
     io::stdout().flush()?;
     let mut input = String::new();

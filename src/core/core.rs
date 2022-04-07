@@ -4,14 +4,16 @@ use std::{
     process::Command,
 };
 
-use anyhow::anyhow;
 use chrono::{DateTime, Local};
 
 use super::{lines_processor::LinesProcessor, task::Task};
-use crate::tools::{
-    extract_logins_passwords::PartExtractor, extract_phones::PhonesExtractor, merge::Merger,
-    remove_domain::DomainRemover, duplicates::*, shuffle::Shuffler,
-    split_by_lines::ByLinesSplitter, split_by_parts::ByPartsSplitter,
+use crate::{
+    errors::core_error::CoreError,
+    processors::{
+        duplicates::*, extract_logins_passwords::PartExtractor, extract_phones::PhonesExtractor,
+        merge::Merger, remove_domain::DomainRemover, shuffle::Shuffler,
+        split_by_lines::ByLinesSplitter, split_by_parts::ByPartsSplitter,
+    },
 };
 
 const SAVE_PERIOD: usize = 1000;
@@ -25,22 +27,22 @@ pub struct Core {
 }
 
 impl Core {
-    pub fn new(mut args: Args) -> Result<Self, anyhow::Error> {
-        let binary_path = args.next().ok_or(anyhow!("bad args"))?;
+    pub fn new(mut args: Args) -> Result<Self, CoreError> {
+        let binary_path = args.next().ok_or(CoreError::NoBinaryPath)?;
         let binary_path = PathBuf::from(binary_path);
 
-        let task = match args.next().ok_or(anyhow!("bad args"))?.as_str().into() {
-            Task::NotImplemented => return Err(anyhow!("{:?}", Task::NotImplemented)),
+        let task = match args.next().ok_or(CoreError::NoTask)?.as_str().into() {
+            Task::NotImplemented => return Err(CoreError::TaskNotImplemented),
             task => task,
         };
 
-        let base_path = binary_path.parent().ok_or(anyhow!("bad args"))?;
+        let base_path = binary_path.parent().ok_or(CoreError::UnexpectedArgs)?;
         let results_path = Core::format_results_path(base_path, &task);
 
         let targets: Vec<PathBuf> = args.map(PathBuf::from).collect();
 
         if targets.is_empty() {
-            return Err(anyhow!("targets are not specified"));
+            return Err(CoreError::NoCombos);
         }
 
         let save_period = SAVE_PERIOD;
@@ -53,7 +55,7 @@ impl Core {
         })
     }
 
-    pub fn process(self) -> Result<(), anyhow::Error> {
+    pub fn process(self) -> Result<(), CoreError> {
         let results_path = self.results_path.clone();
         match self.task {
             Task::RemoveDomains => {
@@ -102,7 +104,7 @@ impl Core {
         }?;
 
         if !self.results_path.exists() {
-            return Err(anyhow!("Результатов нет"));
+            return Err(CoreError::NoResults);
         }
 
         Core::open_in_explorer(self.results_path);

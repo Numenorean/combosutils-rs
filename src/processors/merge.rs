@@ -1,9 +1,12 @@
 use std::{io::BufRead, path::PathBuf, time};
 
-use crate::core::{
-    lines_processor::LinesProcessor,
-    task::Task,
-    utils::{self, open_file_r},
+use crate::{
+    core::{
+        lines_processor::LinesProcessor,
+        task::Task,
+        utils::{self, open_file_r},
+    },
+    errors::core_error::CoreError,
 };
 
 pub struct Merger {
@@ -27,7 +30,7 @@ impl LinesProcessor for Merger {
         unreachable!()
     }
 
-    fn process(self) -> Result<(), anyhow::Error> {
+    fn process(self) -> Result<(), CoreError> {
         println!("Обработка {} файлов", self.targets.len());
 
         let now = time::Instant::now();

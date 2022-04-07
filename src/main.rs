@@ -1,5 +1,6 @@
 mod core;
-mod tools;
+mod errors;
+mod processors;
 use crate::core::core::Core;
 use std::{env, io::Read};
 
@@ -8,16 +9,22 @@ use mimalloc::MiMalloc;
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 
-fn main() -> Result<(), anyhow::Error> {
+#[allow(clippy::unused_io_amount)]
+fn main() {
     let args = env::args();
 
-    let core = Core::new(args)?;
+    let core = match Core::new(args) {
+        Ok(core) => core,
+        Err(error) => {
+            eprintln!("Ошибка при инициализации: {}", error);
+            std::io::stdin().read(&mut [0u8]).unwrap();
+            return;
+        }
+    };
 
     if let Err(err) = core.process() {
-        eprintln!("Ошибка: {}", err)
+        eprintln!("Ошибка при обработке: {}", err)
     }
 
-    let _ = std::io::stdin().read(&mut [0u8]).unwrap();
-
-    Ok(())
+    std::io::stdin().read(&mut [0u8]).unwrap();
 }

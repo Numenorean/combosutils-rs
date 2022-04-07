@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+use crate::errors::core_error::CoreError;
+
 use super::task::Task;
 
 pub trait LinesProcessor {
@@ -7,5 +9,5 @@ pub trait LinesProcessor {
 
     fn process_line(line: &str) -> Option<String>;
 
-    fn process(self) -> Result<(), anyhow::Error>;
+    fn process(self) -> Result<(), CoreError>;
 }

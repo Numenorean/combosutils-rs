@@ -1,21 +1,27 @@
-use std::{io::BufRead, path::PathBuf, time};
+use std::{fs::File, io::BufRead, path::PathBuf, time};
 
-use crate::core::{
-    lines_processor::LinesProcessor,
-    task::Task,
-    utils::{self, open_file_r},
+use crate::{
+    core::{
+        lines_processor::LinesProcessor,
+        task::Task,
+        utils::{self, open_file_r},
+    },
+    errors::core_error::CoreError,
 };
 
-pub struct PartExtractor {
+const MAX_PHONE_LENGTH: usize = 15;
+const MIN_PHONE_LENGTH: usize = 8;
+
+pub struct PhonesExtractor {
     targets: Vec<PathBuf>,
     results_path: PathBuf,
     save_period: usize,
     task: Task,
 }
 
-impl LinesProcessor for PartExtractor {
+impl LinesProcessor for PhonesExtractor {
     fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize, task: Task) -> Self {
-        PartExtractor {
+        PhonesExtractor {
             targets,
             results_path,
             save_period,
@@ -23,11 +29,18 @@ impl LinesProcessor for PartExtractor {
         }
     }
 
-    fn process_line(_: &str) -> Option<String> {
-        unreachable!()
+    fn process_line(combo: &str) -> Option<String> {
+        let (phone, password) = combo.split_once([':', ';'])?;
+        if phone.is_empty() || password.is_empty() {
+            return None;
+        }
+        let mut combo = extract_phone(phone)?;
+        combo.push(':');
+        combo.push_str(password);
+        Some(combo)
     }
 
-    fn process(self) -> Result<(), anyhow::Error> {
+    fn process(self) -> Result<(), CoreError> {
         println!("Обработка {} файлов", self.targets.len());
 
         let now = time::Instant::now();
@@ -68,7 +81,7 @@ impl LinesProcessor for PartExtractor {
             // TODO: handle files with the same names but in a different dirs
             let results_path =
                 utils::build_results_path(path, &self.results_path, self.task.to_suffix());
-            let results_file = Some(utils::open_results_file(results_path)?);
+            let mut results_file: Option<File> = None;
 
             for (i, combo) in reader.lines().enumerate() {
                 let combo = match combo {
@@ -84,8 +97,12 @@ impl LinesProcessor for PartExtractor {
                     }
                 };
 
-                let part = extract(&combo, self.task);
-                if let Some(combo) = part {
+                let combo = PhonesExtractor::process_line(&combo);
+                if results_file.is_none() && combo.is_some() {
+                    results_file = Some(utils::open_results_file(&results_path)?);
+                }
+
+                if let Some(combo) = combo {
                     results.push(combo);
                 }
 
@@ -107,15 +124,53 @@ impl LinesProcessor for PartExtractor {
     }
 }
 
-fn extract(combo: &str, task: Task) -> Option<String> {
-    let (email, password) = combo.split_once([':', ';'])?;
-    if email.is_empty() || password.is_empty() {
+fn extract_phone(phone: &str) -> Option<String> {
+    if phone.contains('@') {
         return None;
     }
 
-    match task {
-        Task::ExtractLogins => Some(email.to_owned()),
-        Task::ExtractPasswords => Some(password.to_owned()),
-        _ => unreachable!(),
+    let has_plus = phone.starts_with('+');
+
+    let extracted_digits = {
+        let digits: String = phone.matches(|x| char::is_ascii_digit(&x)).collect();
+        match &*digits {
+            "" => return None,
+            _ => digits,
+        }
+    };
+
+    if !(MIN_PHONE_LENGTH..=MAX_PHONE_LENGTH).contains(&extracted_digits.len()) {
+        return None;
     }
+
+    let mut new_phone = String::with_capacity(MAX_PHONE_LENGTH);
+
+    let is_russian = extracted_digits.len() == 10
+        && (extracted_digits.starts_with('9') || extracted_digits.starts_with('7'));
+    let is_russian_town = extracted_digits.len() == 11 && extracted_digits.starts_with('8');
+    let is_ukrainian = extracted_digits.len() == 10 && extracted_digits.starts_with('0');
+
+    if is_russian {
+        new_phone.push('7');
+        new_phone.push_str(&extracted_digits);
+    } else if is_russian_town {
+        new_phone.push('7');
+        new_phone.push_str(&extracted_digits[1..]);
+    } else if is_ukrainian {
+        new_phone.push_str("38");
+        new_phone.push_str(&extracted_digits);
+    } else {
+        new_phone.push_str(&extracted_digits);
+    }
+
+    let is_russian = new_phone.starts_with('7') && new_phone.len() == 11;
+    let is_ukrainian = new_phone.starts_with("380") && new_phone.len() == 12;
+    let is_bel = new_phone.starts_with("375") && new_phone.len() == 12;
+    let is_mol = new_phone.starts_with("373") && new_phone.len() == 11;
+
+    if !is_ukrainian && !is_russian && !is_bel && !is_mol && !has_plus {
+        return None;
+    }
+
+    Some(new_phone)
 }

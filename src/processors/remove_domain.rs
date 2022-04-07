@@ -1,31 +1,24 @@
-use std::{path::PathBuf, time};
+use std::{io::BufRead, path::PathBuf, time};
 
-use memmap::MmapOptions;
-
-use crate::core::{
-    lines_processor::LinesProcessor,
-    task::Task,
-    utils::{self, open_file_r},
+use crate::{
+    core::{
+        lines_processor::LinesProcessor,
+        task::Task,
+        utils::{self, open_file_r},
+    },
+    errors::core_error::CoreError,
 };
 
-use rand::{prelude::SliceRandom, thread_rng};
-
-pub struct Shuffler {
+pub struct DomainRemover {
     targets: Vec<PathBuf>,
     results_path: PathBuf,
     save_period: usize,
     task: Task,
 }
 
-#[derive(Debug)]
-struct ComboOffset {
-    start: usize,
-    end: usize,
-}
-
-impl LinesProcessor for Shuffler {
+impl LinesProcessor for DomainRemover {
     fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize, task: Task) -> Self {
-        Shuffler {
+        DomainRemover {
             targets,
             results_path,
             save_period,
@@ -33,14 +26,16 @@ impl LinesProcessor for Shuffler {
         }
     }
 
-    fn process_line(_: &str) -> Option<String> {
-        unreachable!()
+    fn process_line(line: &str) -> Option<String> {
+        remove_domain(line)
     }
 
-    fn process(self) -> Result<(), anyhow::Error> {
+    fn process(self) -> Result<(), CoreError> {
         println!("Обработка {} файлов", self.targets.len());
 
         let now = time::Instant::now();
+
+        let mut results: Vec<String> = Vec::with_capacity(self.save_period);
 
         for (file_num, path) in self.targets.iter().enumerate() {
             let inner_now = time::Instant::now();
@@ -71,41 +66,31 @@ impl LinesProcessor for Shuffler {
                 }
             };
 
+            let reader = utils::reader_from_file(file);
+
             // TODO: handle files with the same names but in a different dirs
             let results_path =
                 utils::build_results_path(path, &self.results_path, self.task.to_suffix());
             let results_file = Some(utils::open_results_file(results_path)?);
 
-            let mmap = unsafe { MmapOptions::new().map(&file)? };
+            for (i, combo) in reader.lines().enumerate() {
+                let combo = match combo {
+                    Ok(combo) => combo,
+                    Err(err) => {
+                        eprintln!(
+                            "Can't read combo on line {} in file {}. {}",
+                            i,
+                            path.display(),
+                            err
+                        );
+                        continue;
+                    }
+                };
 
-            let mut start = 0usize;
-
-            let mut lines_offsets: Vec<ComboOffset> = Vec::with_capacity(lines_count);
-
-            println!("Поиск сдвигов...");
-
-            for (end, &char) in mmap.iter().enumerate() {
-                if char == b'\n' || mmap.len() - end == 1 {
-                    lines_offsets.push(ComboOffset { start, end });
-                    start = end + 1;
+                let combo = DomainRemover::process_line(&combo);
+                if let Some(combo) = combo {
+                    results.push(combo);
                 }
-            }
-
-            let mut rng = thread_rng();
-
-            println!("Перемешивание...");
-
-            lines_offsets.shuffle(&mut rng);
-
-            let mut results: Vec<String> = Vec::with_capacity(self.save_period);
-
-            println!("Сохранение результатов...");
-
-            for (i, offset) in lines_offsets.iter().enumerate() {
-                let data = &mmap[offset.start..=offset.end];
-                let combo = String::from_utf8_lossy(data).trim_end().to_owned();
-
-                results.push(combo);
 
                 if results.len() == self.save_period || lines_count - i == 1 {
                     if let Err(e) = utils::save_results(&mut results, &results_file) {
@@ -123,4 +108,18 @@ impl LinesProcessor for Shuffler {
 
         Ok(())
     }
+}
+
+fn remove_domain(combo: &str) -> Option<String> {
+    let (email, password) = combo.split_once(&[':', ';'][..])?;
+    if email.is_empty() || password.is_empty() {
+        return None;
+    }
+
+    email.split('@').next().map(|username| {
+        let mut result = String::from(username);
+        result.push(':');
+        result.push_str(password);
+        result
+    })
 }

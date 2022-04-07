@@ -1,54 +1,64 @@
 use std::{io::BufRead, path::PathBuf, time};
 
-use crate::core::{
-    lines_processor::LinesProcessor,
-    task::Task,
-    utils::{self, open_file_r},
+use crate::{
+    core::{
+        lines_processor::LinesProcessor,
+        task::Task,
+        utils::{self, open_file_r},
+    },
+    errors::core_error::CoreError,
 };
 
-pub struct ByPartsSplitter {
+pub struct ByLinesSplitter {
     targets: Vec<PathBuf>,
     results_path: PathBuf,
     save_period: usize,
     task: Task,
-    parts_n: usize,
+    lines_n: usize,
 }
 
-impl LinesProcessor for ByPartsSplitter {
+impl LinesProcessor for ByLinesSplitter {
     fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize, task: Task) -> Self {
-        fn get_parts_n() -> usize {
+        let mut save_period = save_period;
+        fn get_lines_n() -> usize {
             let static_err = "Что-то не так с числом";
-            let input = utils::user_input("Количество частей: ");
+            let input = utils::user_input("Количество строк в каждом файле: ");
 
             match input {
                 Ok(input) => match input.parse::<usize>() {
                     Ok(n) => {
                         if n == 0 {
                             println!("{}: Не может быть 0", static_err);
-                            return get_parts_n();
+                            return get_lines_n();
                         }
                         n
                     }
                     Err(err) => {
                         println!("{}: {}", static_err, err);
-                        get_parts_n()
+                        get_lines_n()
                     }
                 },
                 Err(err) => {
                     println!("{}: {}", static_err, err);
-                    get_parts_n()
+                    get_lines_n()
                 }
             }
         }
 
-        let parts_n = get_parts_n();
+        let lines_n = get_lines_n();
 
-        ByPartsSplitter {
+        if save_period > lines_n {
+            save_period = lines_n;
+        }
+
+        println!("{}", save_period);
+
+        ByLinesSplitter {
             targets,
             results_path,
             save_period,
             task,
-            parts_n
+            lines_n,
         }
     }
 
@@ -56,7 +66,7 @@ impl LinesProcessor for ByPartsSplitter {
         unreachable!()
     }
 
-    fn process(mut self) -> Result<(), anyhow::Error> {
+    fn process(self) -> Result<(), CoreError> {
         println!("Обработка {} файлов", self.targets.len());
 
         let now = time::Instant::now();
@@ -84,14 +94,10 @@ impl LinesProcessor for ByPartsSplitter {
                 lines_count
             );
 
-            let mut lines_n = lines_count/self.parts_n;
+            let mut lines_n = self.lines_n;
 
-            if lines_n == 0 {
+            if self.lines_n > lines_count {
                 lines_n = lines_count;
-            }
-
-            if self.save_period > lines_n {
-                self.save_period = lines_n;
             }
 
             let file = match open_file_r(path) {
@@ -104,10 +110,8 @@ impl LinesProcessor for ByPartsSplitter {
 
             let reader = utils::reader_from_file(file);
 
-            let mut part = 1;
-
             // TODO: handle files with the same names but in a different dirs
-            let suffix = self.task.to_suffix().replace("{num}", &part.to_string());
+            let suffix = self.task.to_suffix().replace("{num}", &lines_n.to_string());
             let mut self_results_path = self.results_path.clone();
             self_results_path.push(path.file_name().unwrap_or_default());
 
@@ -162,11 +166,10 @@ impl LinesProcessor for ByPartsSplitter {
                 }
 
                 if next_group {
-                    part+=1;
                     let suffix = self
                         .task
                         .to_suffix()
-                        .replace("{num}", &part.to_string());
+                        .replace("{num}", &(i - 1 + lines_n).to_string());
                     results_path = utils::build_results_path(path, &self_results_path, &suffix);
                     results_file = Some(utils::open_results_file(results_path)?);
                     already_written = 0;

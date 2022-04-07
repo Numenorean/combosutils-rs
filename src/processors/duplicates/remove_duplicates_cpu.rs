@@ -1,18 +1,21 @@
 use std::{path::PathBuf, time};
 
-use rustc_hash::FxHashSet;
+use rayon::slice::ParallelSliceMut;
 
-use crate::core::{lines_processor::LinesProcessor, task::Task, utils};
+use crate::{
+    core::{lines_processor::LinesProcessor, task::Task, utils},
+    errors::core_error::CoreError,
+};
 
-pub struct DuplicatesExtracter {
+pub struct DuplicatesRemoverC {
     targets: Vec<PathBuf>,
     results_path: PathBuf,
     task: Task,
 }
 
-impl LinesProcessor for DuplicatesExtracter {
+impl LinesProcessor for DuplicatesRemoverC {
     fn new(targets: Vec<PathBuf>, results_path: PathBuf, _: usize, task: Task) -> Self {
-        DuplicatesExtracter {
+        DuplicatesRemoverC {
             targets,
             results_path,
             task,
@@ -23,7 +26,7 @@ impl LinesProcessor for DuplicatesExtracter {
         unreachable!()
     }
 
-    fn process(self) -> Result<(), anyhow::Error> {
+    fn process(self) -> Result<(), CoreError> {
         println!("Обработка {} файлов", self.targets.len());
 
         let now = time::Instant::now();
@@ -33,7 +36,7 @@ impl LinesProcessor for DuplicatesExtracter {
 
             let mut lines = String::new();
 
-            let lines = match utils::read_lines(path, &mut lines) {
+            let mut lines = match utils::read_lines(path, &mut lines) {
                 Err(err) => {
                     eprintln!("Can't read input file {:?}. {}", path, err);
                     continue;
@@ -50,9 +53,13 @@ impl LinesProcessor for DuplicatesExtracter {
                 lines_count
             );
 
+            println!("Сортировка...");
+
+            lines.par_sort_unstable();
+
             println!("Удаление дубликатов...");
 
-            let lines: FxHashSet<&str> = FxHashSet::from_iter(lines);
+            lines.dedup();
 
             let lines_count_after = lines.len();
 
@@ -62,11 +69,9 @@ impl LinesProcessor for DuplicatesExtracter {
             // TODO: handle files with the same names but in a different dirs
             let results_path =
                 utils::build_results_path(path, &self.results_path, self.task.to_suffix());
-            let mut results_file = utils::open_results_file(results_path)?;
+            let results_file = Some(utils::open_results_file(results_path)?);
 
-            if let Err(e) =
-                utils::save_results_hashset(&mut lines.iter().copied(), &mut results_file)
-            {
+            if let Err(e) = utils::save_results(&mut lines, &results_file) {
                 eprintln!("Couldn't save results to file: {}", e);
                 continue;
             }
