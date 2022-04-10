@@ -3,6 +3,7 @@ use std::{path::PathBuf, time};
 use rayon::slice::ParallelSliceMut;
 
 use crate::{
+    cmd::Args,
     core::{lines_processor::LinesProcessor, task::Task, utils},
     errors::core_error::CoreError,
 };
@@ -14,11 +15,11 @@ pub struct DuplicatesRemoverC {
 }
 
 impl LinesProcessor for DuplicatesRemoverC {
-    fn new(targets: Vec<PathBuf>, results_path: PathBuf, _: usize, task: Task) -> Self {
+    fn new(args: Args, results_path: PathBuf, _: usize) -> Self {
         DuplicatesRemoverC {
-            targets,
+            targets: args.targets,
             results_path,
-            task,
+            task: args.task,
         }
     }
 

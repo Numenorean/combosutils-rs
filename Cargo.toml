@@ -18,6 +18,7 @@ rustc-hash = "1.1.0"
 memmap = "0.7.0"
 rand = "0.8.4"
 thiserror = "1.0.30"
+clap = { version = "3.1.8", features = ["derive"] }
 
 [profile.release]
 lto = "fat"

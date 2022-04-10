@@ -1,6 +1,7 @@
 use std::{fs::File, io::BufRead, path::PathBuf, time};
 
 use crate::{
+    cmd::Args,
     core::{
         lines_processor::LinesProcessor,
         task::Task,
@@ -20,12 +21,12 @@ pub struct PhonesExtractor {
 }
 
 impl LinesProcessor for PhonesExtractor {
-    fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize, task: Task) -> Self {
+    fn new(args: Args, results_path: PathBuf, save_period: usize) -> Self {
         PhonesExtractor {
-            targets,
+            targets: args.targets,
             results_path,
             save_period,
-            task,
+            task: args.task,
         }
     }
 

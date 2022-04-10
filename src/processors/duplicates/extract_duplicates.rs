@@ -3,6 +3,7 @@ use std::{path::PathBuf, time};
 use rustc_hash::FxHashSet;
 
 use crate::{
+    cmd::Args,
     core::{lines_processor::LinesProcessor, task::Task, utils},
     errors::core_error::CoreError,
 };
@@ -14,11 +15,11 @@ pub struct DuplicatesExtracter {
 }
 
 impl LinesProcessor for DuplicatesExtracter {
-    fn new(targets: Vec<PathBuf>, results_path: PathBuf, _: usize, task: Task) -> Self {
+    fn new(args: Args, results_path: PathBuf, _: usize) -> Self {
         DuplicatesExtracter {
-            targets,
+            targets: args.targets,
             results_path,
-            task,
+            task: args.task,
         }
     }
 

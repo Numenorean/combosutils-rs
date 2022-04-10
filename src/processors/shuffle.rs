@@ -3,6 +3,7 @@ use std::{path::PathBuf, time};
 use memmap::MmapOptions;
 
 use crate::{
+    cmd::Args,
     core::{
         lines_processor::LinesProcessor,
         task::Task,
@@ -27,12 +28,12 @@ struct ComboOffset {
 }
 
 impl LinesProcessor for Shuffler {
-    fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize, task: Task) -> Self {
+    fn new(args: Args, results_path: PathBuf, save_period: usize) -> Self {
         Shuffler {
-            targets,
+            targets: args.targets,
             results_path,
             save_period,
-            task,
+            task: args.task,
         }
     }
 

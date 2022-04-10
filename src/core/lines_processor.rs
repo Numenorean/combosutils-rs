@@ -1,11 +1,9 @@
 use std::path::PathBuf;
 
-use crate::errors::core_error::CoreError;
-
-use super::task::Task;
+use crate::{cmd::Args, errors::core_error::CoreError};
 
 pub trait LinesProcessor {
-    fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize, task: Task) -> Self;
+    fn new(args: Args, results_path: PathBuf, save_period: usize) -> Self;
 
     fn process_line(line: &str) -> Option<String>;
 

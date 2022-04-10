@@ -1,6 +1,8 @@
-use std::fmt;
+use std::{fmt, str::FromStr};
 
-#[derive(Clone, Copy)]
+use clap::{ArgEnum, PossibleValue};
+
+#[derive(Debug, Clone, Copy, ArgEnum)]
 pub enum Task {
     RemoveDomains,
     RemoveDuplicatesM,
@@ -12,7 +14,6 @@ pub enum Task {
     ExtractLogins,
     ExtractPasswords,
     ExtractPhones,
-    NotImplemented,
 }
 
 impl Task {
@@ -27,12 +28,17 @@ impl Task {
             Task::ExtractLogins => "_logins",
             Task::ExtractPasswords => "_passwords",
             Task::ExtractPhones => "_phones",
-            _ => unreachable!(),
         }
+    }
+
+    pub fn possible_values() -> impl Iterator<Item = PossibleValue<'static>> {
+        Task::value_variants()
+            .iter()
+            .filter_map(ArgEnum::to_possible_value)
     }
 }
 
-impl fmt::Debug for Task {
+impl fmt::Display for Task {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Task::RemoveDomains => write!(f, "Удаление доменов"),
@@ -44,25 +50,28 @@ impl fmt::Debug for Task {
             Task::ExtractLogins => write!(f, "Получение логинов"),
             Task::ExtractPasswords => write!(f, "Получение паролей"),
             Task::ExtractPhones => write!(f, "Нормализация телефонов"),
-            _ => write!(f, "Такого пока нет"),
         }
     }
 }
 
-impl From<&str> for Task {
-    fn from(s: &str) -> Task {
-        match s {
-            "--remove-domains" => Task::RemoveDomains,
-            "--remove-duplicates-m" => Task::RemoveDuplicatesM,
-            "--remove-duplicates-c" => Task::RemoveDuplicatesC,
-            "--split-by-lines" => Task::SplitByLines,
-            "--split-by-parts" => Task::SplitByParts,
-            "--merge" => Task::Merge,
-            "--shuffle" => Task::Shuffle,
-            "--extract-logins" => Task::ExtractLogins,
-            "--extract-passwords" => Task::ExtractPasswords,
-            "--extract-phones" => Task::ExtractPhones,
-            _ => Task::NotImplemented,
-        }
+impl FromStr for Task {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let task = match s {
+            "remove-domains" => Task::RemoveDomains,
+            "remove-duplicates-m" => Task::RemoveDuplicatesM,
+            "remove-duplicates-c" => Task::RemoveDuplicatesC,
+            "split-by-lines" => Task::SplitByLines,
+            "split-by-parts" => Task::SplitByParts,
+            "merge" => Task::Merge,
+            "shuffle" => Task::Shuffle,
+            "extract-logins" => Task::ExtractLogins,
+            "extract-passwords" => Task::ExtractPasswords,
+            "extract-phones" => Task::ExtractPhones,
+            _ => return Err("Такого пока нет".to_owned()),
+        };
+
+        Ok(task)
     }
 }

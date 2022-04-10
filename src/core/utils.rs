@@ -117,3 +117,28 @@ pub fn user_input(input: &str) -> io::Result<String> {
     io::stdin().read_line(&mut input)?;
     Ok(input.trim().to_string())
 }
+
+pub fn ask_for_number(input: &str) -> usize {
+    let static_err = "Что-то не так с числом";
+    loop {
+        let input = user_input(input);
+        if let Err(err) = input {
+            println!("{}: {}", static_err, err);
+            continue;
+        }
+
+        let input = input.unwrap().parse::<usize>();
+        if let Err(err) = input {
+            println!("{}: {}", static_err, err);
+            continue;
+        }
+
+        let input = input.unwrap();
+        if input == 0 {
+            println!("{}: Должно быть > 0", static_err);
+            continue;
+        }
+
+        break input;
+    }
+}

@@ -1,6 +1,7 @@
 use std::{io::BufRead, path::PathBuf, time};
 
 use crate::{
+    cmd::Args,
     core::{
         lines_processor::LinesProcessor,
         task::Task,
@@ -18,34 +19,14 @@ pub struct ByLinesSplitter {
 }
 
 impl LinesProcessor for ByLinesSplitter {
-    fn new(targets: Vec<PathBuf>, results_path: PathBuf, save_period: usize, task: Task) -> Self {
+    fn new(args: Args, results_path: PathBuf, save_period: usize) -> Self {
         let mut save_period = save_period;
-        fn get_lines_n() -> usize {
-            let static_err = "Что-то не так с числом";
-            let input = utils::user_input("Количество строк в каждом файле: ");
 
-            match input {
-                Ok(input) => match input.parse::<usize>() {
-                    Ok(n) => {
-                        if n == 0 {
-                            println!("{}: Не может быть 0", static_err);
-                            return get_lines_n();
-                        }
-                        n
-                    }
-                    Err(err) => {
-                        println!("{}: {}", static_err, err);
-                        get_lines_n()
-                    }
-                },
-                Err(err) => {
-                    println!("{}: {}", static_err, err);
-                    get_lines_n()
-                }
-            }
-        }
-
-        let lines_n = get_lines_n();
+        let lines_n = if let Some(n) = args.n {
+            n
+        } else {
+            utils::ask_for_number("Количество строк в каждом файле: ")
+        };
 
         if save_period > lines_n {
             save_period = lines_n;
@@ -54,10 +35,10 @@ impl LinesProcessor for ByLinesSplitter {
         println!("{}", save_period);
 
         ByLinesSplitter {
-            targets,
+            targets: args.targets,
             results_path,
             save_period,
-            task,
+            task: args.task,
             lines_n,
         }
     }

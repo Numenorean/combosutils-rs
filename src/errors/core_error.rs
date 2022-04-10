@@ -4,18 +4,6 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum CoreError {
-    #[error("executable can't be read")]
-    NoBinaryPath,
-
-    #[error("task does not specified")]
-    NoTask,
-
-    #[error("combos path does not specified")]
-    NoCombos,
-
-    #[error("task does not implemented")]
-    TaskNotImplemented,
-
     #[error("no results")]
     NoResults,
 
