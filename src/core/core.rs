@@ -46,12 +46,12 @@ impl Core {
                 DomainRemover::new(self.args, results_path, self.save_period).process()
             }
 
-            Task::RemoveDuplicatesM => {
-                DuplicatesRemoverM::new(self.args, results_path, self.save_period).process()
+            Task::RemoveDuplicatesFast => {
+                DuplicatesRemoverMem::new(self.args, results_path, self.save_period).process()
             }
 
-            Task::RemoveDuplicatesC => {
-                DuplicatesRemoverC::new(self.args, results_path, self.save_period).process()
+            Task::RemoveDuplicatesSlow => {
+                DuplicatesRemoverSlow::new(self.args, results_path, self.save_period).process()
             }
 
             Task::SplitByLines => {

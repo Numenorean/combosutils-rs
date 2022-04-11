@@ -5,8 +5,8 @@ use clap::{ArgEnum, PossibleValue};
 #[derive(Debug, Clone, Copy, ArgEnum)]
 pub enum Task {
     RemoveDomains,
-    RemoveDuplicatesM,
-    RemoveDuplicatesC,
+    RemoveDuplicatesFast,
+    RemoveDuplicatesSlow,
     ExtractDuplicates,
     SplitByLines,
     SplitByParts,
@@ -22,7 +22,7 @@ impl Task {
     pub fn to_suffix(self) -> &'static str {
         match self {
             Task::RemoveDomains => "_no_domains",
-            Task::RemoveDuplicatesM | Task::RemoveDuplicatesC => "_no_duplicates",
+            Task::RemoveDuplicatesFast | Task::RemoveDuplicatesSlow => "_no_duplicates",
             Task::SplitByLines | Task::SplitByParts => "_splitted_{num}",
             Task::Merge => "_merged",
             Task::Shuffle => "_randomized",
@@ -44,7 +44,9 @@ impl fmt::Display for Task {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Task::RemoveDomains => write!(f, "Удаление доменов"),
-            Task::RemoveDuplicatesM | Task::RemoveDuplicatesC => write!(f, "Удаление дубликатов"),
+            Task::RemoveDuplicatesFast | Task::RemoveDuplicatesSlow => {
+                write!(f, "Удаление дубликатов")
+            }
             Task::SplitByLines => write!(f, "Разделение по количеству строк"),
             Task::SplitByParts => write!(f, "Разделение по частям"),
             Task::Merge => write!(f, "Склеивание"),
@@ -63,8 +65,8 @@ impl FromStr for Task {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let task = match s {
             "remove-domains" => Task::RemoveDomains,
-            "remove-duplicates-m" => Task::RemoveDuplicatesM,
-            "remove-duplicates-c" => Task::RemoveDuplicatesC,
+            "remove-duplicates-fast" => Task::RemoveDuplicatesFast,
+            "remove-duplicates-slow" => Task::RemoveDuplicatesSlow,
             "split-by-lines" => Task::SplitByLines,
             "split-by-parts" => Task::SplitByParts,
             "merge" => Task::Merge,

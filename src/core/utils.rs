@@ -90,7 +90,7 @@ pub fn save_results_hashset<'a>(
     file: &mut File,
 ) -> io::Result<()> {
     let results_str = join(results, "\n");
-    let encoded = WINDOWS_1252.encode(results_str.as_str());
+    let encoded = WINDOWS_1252.encode(&results_str);
     file.write_all(&encoded.0)?;
     Ok(())
 }

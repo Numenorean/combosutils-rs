@@ -8,15 +8,15 @@ use crate::{
     errors::core_error::CoreError,
 };
 
-pub struct DuplicatesRemoverM {
+pub struct DuplicatesRemoverMem {
     targets: Vec<PathBuf>,
     results_path: PathBuf,
     task: Task,
 }
 
-impl LinesProcessor for DuplicatesRemoverM {
+impl LinesProcessor for DuplicatesRemoverMem {
     fn new(args: Args, results_path: PathBuf, _: usize) -> Self {
-        DuplicatesRemoverM {
+        DuplicatesRemoverMem {
             targets: args.targets,
             results_path,
             task: args.task,
