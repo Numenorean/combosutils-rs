@@ -1,3 +1,5 @@
+#![feature(let_chains)]
+
 mod cmd;
 mod core;
 mod errors;

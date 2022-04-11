@@ -73,6 +73,10 @@ impl Core {
             Task::ExtractPhones => {
                 PhonesExtractor::new(self.args, results_path, self.save_period).process()
             }
+
+            Task::ExtractDuplicates => {
+                DuplicatesExtractor::new(self.args, results_path, self.save_period).process()
+            }
         }?;
 
         if !self.results_path.exists() {

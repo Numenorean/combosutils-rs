@@ -1,4 +1,5 @@
 use std::borrow::BorrowMut;
+use std::hash::Hash;
 use std::io;
 use std::io::Read;
 use std::io::Write;

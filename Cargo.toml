@@ -19,6 +19,7 @@ memmap = "0.7.0"
 rand = "0.8.4"
 thiserror = "1.0.30"
 clap = { version = "3.1.8", features = ["derive"] }
+seahash = "4.1.0"
 
 [profile.release]
 lto = "fat"

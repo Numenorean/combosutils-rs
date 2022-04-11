@@ -7,6 +7,7 @@ pub enum Task {
     RemoveDomains,
     RemoveDuplicatesM,
     RemoveDuplicatesC,
+    ExtractDuplicates,
     SplitByLines,
     SplitByParts,
     Merge,
@@ -28,6 +29,7 @@ impl Task {
             Task::ExtractLogins => "_logins",
             Task::ExtractPasswords => "_passwords",
             Task::ExtractPhones => "_phones",
+            Task::ExtractDuplicates => "_duplicates",
         }
     }
 
@@ -50,6 +52,7 @@ impl fmt::Display for Task {
             Task::ExtractLogins => write!(f, "Получение логинов"),
             Task::ExtractPasswords => write!(f, "Получение паролей"),
             Task::ExtractPhones => write!(f, "Нормализация телефонов"),
+            Task::ExtractDuplicates => write!(f, "Дубликаты"),
         }
     }
 }
@@ -69,6 +72,7 @@ impl FromStr for Task {
             "extract-logins" => Task::ExtractLogins,
             "extract-passwords" => Task::ExtractPasswords,
             "extract-phones" => Task::ExtractPhones,
+            "extract-duplicates" => Task::ExtractDuplicates,
             _ => return Err("Такого пока нет".to_owned()),
         };
 
