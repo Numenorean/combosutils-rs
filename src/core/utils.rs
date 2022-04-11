@@ -1,5 +1,4 @@
 use std::borrow::BorrowMut;
-use std::hash::Hash;
 use std::io;
 use std::io::Read;
 use std::io::Write;
@@ -122,23 +121,25 @@ pub fn user_input(input: &str) -> io::Result<String> {
 pub fn ask_for_number(input: &str) -> usize {
     let static_err = "Что-то не так с числом";
     loop {
-        let input = user_input(input);
-        if let Err(err) = input {
-            println!("{}: {}", static_err, err);
-            continue;
-        }
+        let input = match user_input(input) {
+            Ok(input) => input,
+            Err(err) => {
+                println!("{}: {}", static_err, err);
+                continue;
+            }
+        };
 
-        let input = input.unwrap().parse::<usize>();
-        if let Err(err) = input {
-            println!("{}: {}", static_err, err);
-            continue;
-        }
-
-        let input = input.unwrap();
-        if input == 0 {
-            println!("{}: Должно быть > 0", static_err);
-            continue;
-        }
+        let input: usize = match input.parse() {
+            Ok(input) if input == 0 => {
+                println!("{}: Должно быть > 0", static_err);
+                continue;
+            }
+            Ok(input) => input,
+            Err(err) => {
+                println!("{}: {}", static_err, err);
+                continue;
+            }
+        };
 
         break input;
     }

@@ -1,6 +1,6 @@
 use std::{io::BufRead, path::PathBuf, time};
 
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashMap;
 
 use crate::{
     cmd::Args,
@@ -12,7 +12,7 @@ use crate::{
     errors::core_error::CoreError,
 };
 use rayon::prelude::*;
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 
 pub struct DuplicatesExtractor {
     targets: Vec<PathBuf>,
@@ -115,7 +115,7 @@ impl LinesProcessor for DuplicatesExtractor {
             let mut lines_count_after: usize = 0;
 
             println!("Сохранение результатов...");
-            
+
             for (i, combo) in reader.lines().enumerate() {
                 let combo = if let Ok(combo) = combo {
                     combo

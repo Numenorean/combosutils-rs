@@ -32,8 +32,6 @@ impl LinesProcessor for ByLinesSplitter {
             save_period = lines_n;
         }
 
-        println!("{}", save_period);
-
         ByLinesSplitter {
             targets: args.targets,
             results_path,
