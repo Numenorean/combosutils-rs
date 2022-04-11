@@ -1,7 +1,9 @@
-use std::{io::BufRead, path::PathBuf, sync::Mutex, time};
+use std::{
+    collections::HashSet, hash::BuildHasherDefault, io::BufRead, path::PathBuf, sync::Mutex, time,
+};
 
+use nohash_hasher::NoHashHasher;
 use rayon::prelude::*;
-use rustc_hash::FxHashSet;
 
 use crate::{
     cmd::Args,
@@ -70,7 +72,9 @@ impl LinesProcessor for DuplicatesRemoverSlow {
 
             let reader = utils::reader_from_file(file);
 
-            let hashes: Mutex<FxHashSet<u64>> = Mutex::new(FxHashSet::default());
+            type NoHashSet = HashSet<u64, BuildHasherDefault<NoHashHasher<u64>>>;
+
+            let hashes: Mutex<NoHashSet> = Mutex::new(NoHashSet::default());
 
             println!("Сохранение хэшей...");
 

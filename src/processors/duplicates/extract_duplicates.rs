@@ -1,6 +1,6 @@
-use std::{io::BufRead, path::PathBuf, time};
+use std::{io::BufRead, path::PathBuf, time, hash::BuildHasherDefault, collections::HashMap};
 
-use rustc_hash::FxHashMap;
+use nohash_hasher::NoHashHasher;
 
 use crate::{
     cmd::Args,
@@ -73,7 +73,9 @@ impl LinesProcessor for DuplicatesExtractor {
 
             println!("Запись хэшей строк...");
 
-            let fx: Mutex<FxHashMap<u64, usize>> = Mutex::new(FxHashMap::default());
+            type NoHashMap = HashMap<u64, usize, BuildHasherDefault<NoHashHasher<u64>>>;
+
+            let fx: Mutex<NoHashMap> = Mutex::new(NoHashMap::default());
             reader
                 .lines()
                 .enumerate()
