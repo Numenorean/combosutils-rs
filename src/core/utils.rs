@@ -1,4 +1,6 @@
 use std::borrow::BorrowMut;
+use std::collections::HashSet;
+use std::hash::BuildHasherDefault;
 use std::io;
 use std::io::Read;
 use std::io::Write;
@@ -10,6 +12,10 @@ use std::{
 
 use encoding_rs::WINDOWS_1252;
 use encoding_rs_io::{DecodeReaderBytes, DecodeReaderBytesBuilder};
+use nohash_hasher::NoHashHasher;
+use walkdir::WalkDir;
+
+pub type NoHashSet = HashSet<u64, BuildHasherDefault<NoHashHasher<u64>>>;
 
 pub fn save_results<T>(results: &mut Vec<T>, file: &Option<File>) -> io::Result<()>
 where
@@ -143,4 +149,27 @@ pub fn ask_for_number(input: &str) -> usize {
 
         break input;
     }
+}
+
+pub fn list_dir(path: PathBuf) -> io::Result<Vec<PathBuf>> {
+    let mut listed_files: Vec<PathBuf> = Vec::new();
+    if path.is_dir() {
+        for entry in WalkDir::new(&path).into_iter() {
+            let entry = match entry {
+                Ok(entry) => entry,
+                Err(err) => {
+                    eprintln!("Can't read file {}. {}", path.display(), err);
+                    continue;
+                }
+            };
+            let path = entry.path();
+            if path.is_file() {
+                listed_files.push(path.to_owned());
+            }
+        }
+    } else {
+        listed_files.push(path);
+    }
+
+    Ok(listed_files)
 }

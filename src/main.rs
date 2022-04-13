@@ -1,4 +1,5 @@
 #![feature(let_chains)]
+#![feature(hash_drain_filter)]
 
 mod cmd;
 mod core;

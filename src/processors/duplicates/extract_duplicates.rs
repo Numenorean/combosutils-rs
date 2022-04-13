@@ -1,4 +1,4 @@
-use std::{io::BufRead, path::PathBuf, time, hash::BuildHasherDefault, collections::HashMap};
+use std::{collections::HashMap, hash::BuildHasherDefault, io::BufRead, path::PathBuf, time};
 
 use nohash_hasher::NoHashHasher;
 

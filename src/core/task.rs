@@ -15,6 +15,7 @@ pub enum Task {
     ExtractLogins,
     ExtractPasswords,
     ExtractPhones,
+    Compare,
 }
 
 impl Task {
@@ -30,6 +31,7 @@ impl Task {
             Task::ExtractPasswords => "_passwords",
             Task::ExtractPhones => "_phones",
             Task::ExtractDuplicates => "_duplicates",
+            Task::Compare => "_uniq_{file}",
         }
     }
 
@@ -55,6 +57,7 @@ impl fmt::Display for Task {
             Task::ExtractPasswords => write!(f, "Получение паролей"),
             Task::ExtractPhones => write!(f, "Нормализация телефонов"),
             Task::ExtractDuplicates => write!(f, "Дубликаты"),
+            Task::Compare => write!(f, "Сравнение"),
         }
     }
 }
@@ -75,6 +78,7 @@ impl FromStr for Task {
             "extract-passwords" => Task::ExtractPasswords,
             "extract-phones" => Task::ExtractPhones,
             "extract-duplicates" => Task::ExtractDuplicates,
+            "compare" => Task::Compare,
             _ => return Err("Такого пока нет".to_owned()),
         };
 

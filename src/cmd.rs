@@ -8,6 +8,7 @@ pub struct Args {
     pub task: Task,
     pub n: Option<usize>,
     pub targets: Vec<PathBuf>,
+    pub compare_with: Option<PathBuf>,
     pub binary_path: PathBuf,
 }
 
@@ -17,6 +18,7 @@ pub fn parse_args() -> Result<Args, Error> {
         .arg(
             arg!(-n <n> "Number of lines/parts")
                 .required(false)
+                .takes_value(true)
                 .validator(|s| {
                     match s.parse::<usize>() {
                         Ok(n) => {
@@ -35,6 +37,19 @@ pub fn parse_args() -> Result<Args, Error> {
                 .takes_value(true)
                 .multiple_values(true),
         )
+        .arg(
+            arg!(--with <file> "Compare with file/dir")
+                .required(true)
+                .takes_value(true)
+                .validator(|s| {
+                    let path: PathBuf = s.to_owned().into();
+                    if !path.exists() {
+                        return Err(String::from("path does not exist"));
+                    }
+                    println!("{:?}", path);
+                    Ok(())
+                }),
+        )
         .get_matches();
     let task: Task = matches.value_of_t("task")?;
     let n = matches.value_of("n").map(|s| s.parse::<usize>().unwrap());
@@ -43,12 +58,14 @@ pub fn parse_args() -> Result<Args, Error> {
         .unwrap()
         .map(PathBuf::from)
         .collect();
+    let compare_with = matches.value_of("with").map(PathBuf::from);
 
     let binary_path: PathBuf = env::args().next().unwrap().into();
     Ok(Args {
         task,
         n,
         targets,
+        compare_with,
         binary_path,
     })
 }

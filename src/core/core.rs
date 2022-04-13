@@ -10,9 +10,9 @@ use crate::{
     cmd::Args,
     errors::core_error::CoreError,
     processors::{
-        duplicates::*, extract_logins_passwords::PartExtractor, extract_phones::PhonesExtractor,
-        merge::Merger, remove_domain::DomainRemover, shuffle::Shuffler,
-        split_by_lines::ByLinesSplitter, split_by_parts::ByPartsSplitter,
+        compare::Comparer, duplicates::*, extract_logins_passwords::PartExtractor,
+        extract_phones::PhonesExtractor, merge::Merger, remove_domain::DomainRemover,
+        shuffle::Shuffler, split_by_lines::ByLinesSplitter, split_by_parts::ByPartsSplitter,
     },
 };
 
@@ -77,6 +77,8 @@ impl Core {
             Task::ExtractDuplicates => {
                 DuplicatesExtractor::new(self.args, results_path, self.save_period).process()
             }
+
+            Task::Compare => Comparer::new(self.args, results_path, self.save_period).process(),
         }?;
 
         if !self.results_path.exists() {

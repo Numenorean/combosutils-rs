@@ -1,3 +1,4 @@
+pub mod compare;
 pub mod duplicates;
 pub mod extract_logins_passwords;
 pub mod extract_phones;

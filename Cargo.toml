@@ -21,6 +21,7 @@ thiserror = "1.0.30"
 clap = { version = "3.1.8", features = ["derive"] }
 seahash = "4.1.0"
 nohash-hasher = "0.2.0"
+walkdir = "2.3.2"
 
 [profile.release]
 lto = "fat"
